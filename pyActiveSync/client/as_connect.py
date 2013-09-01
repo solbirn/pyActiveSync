@@ -1,4 +1,3 @@
-import httplib, urllib
 ########################################################################
 #  Copyright (C) 2013 Sol Birnbaum
 # 
@@ -18,11 +17,12 @@ import httplib, urllib
 #  MA  02110-1301, USA.
 ########################################################################
 
+import httplib, urllib
 
 class as_connect(object):
     """ActiveSync connector object"""
-    USER_AGENT = "Android"
-    POST_URL_TEMPLATE = "/Microsoft-Server-ActiveSync?Cmd=%s&User=%s&DeviceId=12345&DeviceType=Python"
+    USER_AGENT = "Python"
+    POST_URL_TEMPLATE = "/Microsoft-Server-ActiveSync?Cmd=%s&User=%s&DeviceId=123456&DeviceType=Python"
 
     def __init__(self, server, port=443, ssl=True):
         
