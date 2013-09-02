@@ -60,8 +60,52 @@ for node in foldersync_xmldoc_res.get_root():
     elif node.tag is "Changes":
         foldersync_changes = node
 
+#Sync
 as_sync_xmldoc_req = wapxmltree()
 xml_as_sync_rootnode = wapxmlnode("Sync")
+as_sync_xmldoc_req.set_root(xml_as_sync_rootnode, "airsync")
+
+xml_as_collections_node = wapxmlnode("Collections", xml_as_sync_rootnode)
+
+xml_as_Collection_1_node = wapxmlnode("Collection", xml_as_collections_node)  #http://msdn.microsoft.com/en-us/library/gg650891(v=exchg.80).aspx
+xml_as_SyncKey_node = wapxmlnode("SyncKey", xml_as_Collection_1_node, "0")    #http://msdn.microsoft.com/en-us/library/gg663426(v=exchg.80).aspx
+#xml_as_Supported_node = wapxmlnode("Supported", xml_as_Collection_1_node, "") #http://msdn.microsoft.com/en-us/library/gg650908(v=exchg.80).aspx
+xml_as_CollectionId_node = wapxmlnode("CollectionId", xml_as_Collection_1_node, "5") #http://msdn.microsoft.com/en-us/library/gg650886(v=exchg.80).aspx
+#xml_as_DeleteAsMoves_node = wapxmlnode("DeleteAsMoves", xml_as_Collection_1_node, "1") #DEFAULT is "True" #OPT #http://msdn.microsoft.com/en-us/library/gg675480(v=exchg.80).aspx
+#xml_as_GetChanges_node = wapxmlnode("GetChanges", xml_as_Collection_1_node, "0") #MUST be False or absent when SyncKey is 0. #OPT http://msdn.microsoft.com/en-us/library/gg675447(v=exchg.80).aspx
+xml_as_WindowSize_node = wapxmlnode("WindowSize", xml_as_Collection_1_node, "512") #OPT Specify how many change you want at a time, up to 512. #http://msdn.microsoft.com/en-us/library/gg650865(v=exchg.80).aspx
+
+#xml_as_Options_node = wapxmlnode("Options", xml_as_Collection_1_node)
+
+
+#xml_as_ConverationMode_node = wapxmlnode("ConversationMode", xml_as_Collection_1_node, "0") #OPT #will implement later #http://msdn.microsoft.com/en-us/library/gg672034(v=exchg.80).aspx
+
+#xml_as_Commands_collection_node = wapxmlnode("Commands", xml_as_Collection_1_node)
+#xml_as_Commands_Add_node = wapxmlnode("Add", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675487(v=exchg.80).aspx
+#xml_as_Commands_Delete_node = wapxmlnode("Delete", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg663450(v=exchg.80).aspx
+#xml_as_Commands_Change_node = wapxmlnode("Change", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675544(v=exchg.80).aspx
+#xml_as_Commands_Fetch_node = wapxmlnode("Fetch", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675490(v=exchg.80).aspx
+
+#xml_as_collections_node = wapxmlnode("Collections", xml_as_sync_rootnode)
+
+print "\r\nRequest:"
+print as_sync_xmldoc_req
+
+res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
+as_sync_xmldoc_res = parser.decode(res)
+print "\r\nResponse:"
+print as_sync_xmldoc_res
+
+xml_as_SyncKey_node.text = as_sync_xmldoc_res.get_root().get_children()[0].get_children()[0].get_children()[0].text
+
+print "\r\nRequest:"
+print as_sync_xmldoc_req
+
+res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
+as_sync_xmldoc_res = parser.decode(res)
+print "\r\nResponse:"
+print as_sync_xmldoc_res
+
 
 #GetItemsEstimate
 getitemestimate_xmldoc_req = wapxmltree()
