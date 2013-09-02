@@ -1,8 +1,8 @@
 About
 ------
-pyActiveSync is (or rather will be) a pure python implementation of the Microsoft ActiveSync protocol.
+pyActiveSync is (or rather will be) a pure python library for the Microsoft ActiveSync protocol.
 
-The project is in the very beginning stages, although the WBXML parser/serializer and some basic commands are working. 
+The project is in the very beginning stages.
 
 THIS IS NOT A GRANT OF PATENT RIGHTS
 -----------------------------
