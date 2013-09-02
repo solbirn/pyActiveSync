@@ -41,7 +41,7 @@ class code_page(object):
         return self.tokens[tag]
 
     def get_tag(self, token):
-        print token, self.xmlns
+        #print token, self.xmlns
         return self.tags[token]
 
     def __repr__(self):

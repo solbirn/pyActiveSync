@@ -146,19 +146,30 @@ class wbxml_parser(object):
 
         byte = self.decode_byte()
         if byte is not self.GlobalTokens.SWITCH_PAGE:
-            raise AttributeError("No first code page defined.")
+            if self.default_code_page:
+                default_code_page = self.default_code_page
+                self.pointer-=1
+            else:
+                raise AttributeError("No first or default code page defined.")
+        else:
+            default_code_page = self.code_pages[self.decode_byte()]
         root_element = wapxmlnode("?")
-        default_code_page = self.code_pages[self.decode_byte()]
         current_code_page = default_code_page
         root_element.set_xmlns(current_code_page.xmlns)
         wapxmldoc.set_root(root_element, root_element.get_xmlns())
         current_element = root_element
+
+        temp_xmlns = ""
 
 
         while self.pointer < len(inwbxml):
             byte = self.decode_byte()
             if byte is self.GlobalTokens.SWITCH_PAGE:
                 current_code_page = self.code_pages[self.decode_byte()]
+                if current_code_page != default_code_page:
+                    temp_xmlns = current_code_page.xmlns + ":"
+                else:
+                    temp_xmlns = ""
             elif byte is self.GlobalTokens.END:
                 if not current_element.is_root():
                     current_element = current_element.get_parent()
@@ -172,17 +183,17 @@ class wbxml_parser(object):
             elif byte is self.GlobalTokens.OPAQUE:
                 opq_len = self.decode_byte()
                 opq_str = ""
-                if current_node.tag == "Mime":
+                if current_element.tag == "Mime":
                     opq_str = self.decode_string(opq_len)
                 else:
                     import binascii
                     opq_str = binascii.hexlify(self.decode_binary(opq_len))
-                current_node.set_text(opq_str)
+                current_element.text = opq_str
             else:
                 if byte & 0x80 > 0:
-                    raise AttributeError("Token has attributes. MS-ASWBXML does not use attributes for token.")
+                    raise AttributeError("Token has attributes. MS-ASWBXML does not use attributes.")
                 token = byte & 0x3f
-                tag_token = current_code_page.get_tag(token)
+                tag_token = temp_xmlns + current_code_page.get_tag(token)
                 if not first_iter:
                     new_element = wapxmlnode(tag_token, current_element)
                     current_element = new_element
