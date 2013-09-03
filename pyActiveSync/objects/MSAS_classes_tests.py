@@ -22,16 +22,16 @@ from MSASEMAIL import *
 email1 = Email()
 print email1
 
-meeting_request1 = MeetingRequest()
+meeting_request1 = email_MeetingRequest()
 print meeting_request1
 
-meeting_recurrence1 = Recurrence()
+meeting_recurrence1 = email_Recurrence()
 print meeting_recurrence1
 
-from MSASAIRS import Type as airsync_Type, Body as airsync_Body, Attachment as airaync_Attachment
+from MSASAIRS import airsyncbase_Type, airsyncbase_Body, airsyncbase_Attachment
 
-body1 = airsync_Body(airsync_Type.HTML)
+body1 = airsyncbase_Body(airsyncbase_Type.HTML)
 print body1
 
-attachment1 = Attachment(None, None, None)
+attachment1 = airsyncbase_Attachment(None, None, None)
 print attachment1

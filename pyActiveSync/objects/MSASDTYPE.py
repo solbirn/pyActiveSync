@@ -19,7 +19,7 @@
 
 """[MS-ASDTYPE] MS-AS data types objects"""
 
-class TimeZone:
+class datatype_TimeZone:
     def get_local_timezone_bytes():
         #TODO
         return
