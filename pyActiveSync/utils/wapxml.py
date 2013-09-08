@@ -44,7 +44,7 @@ class wapxmlnode(object):
         self.cdata = cdata
         self._children = []
         self._is_root = None
-        self.xmlns = None
+        self._xmlns = None
         self._parent = None
         if parent:
             try:
