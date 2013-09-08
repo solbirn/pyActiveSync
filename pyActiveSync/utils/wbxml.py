@@ -196,12 +196,11 @@ class wbxml_parser(object):
                 tag_token = temp_xmlns + current_code_page.get_tag(token)
                 if not first_iter:
                     new_element = wapxmlnode(tag_token, current_element)
-                    current_element = new_element
-                    continue
+                    if (byte & 0x40): #check to see if new element has children 
+                        current_element = new_element
                 elif current_element.is_root():
                     current_element.tag = tag_token
                     first_iter = False
-                    continue
                 else:
                     raise IndexError("Missing root element.")
         return wapxmldoc
