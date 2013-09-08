@@ -19,7 +19,7 @@
 
 """[MS-ASEMAIL] Email class namespace objects"""
 
-from MSASAIRS import airsyncbase_Type, airsyncbase_Body, airsyncbase_Attachment, airsyncbase_Method, airsyncbase_NativeBodyType
+from MSASAIRS import airsyncbase_Type, airsyncbase_Body, airsyncbase_Attachment, airsyncbase_Attachments, airsyncbase_Method, airsyncbase_NativeBodyType, airsyncbase_BodyPart
 
 
 class email_Importance:
@@ -183,7 +183,7 @@ class email_MeetingRequest(object):                   #http://msdn.microsoft.com
 class email_Flag(object):                   #http://msdn.microsoft.com/en-us/library/ee160518(v=exchg.80).aspx
     def __init__(self):
         self.tasks_Subject = ""             #Optional. String.
-        self.email_Status = email_Flag_status.Active
+        self.email_flag_Status = email_Flag_status.Active
         self.email_FlagType = ""            #Optional. String. A string the 'explains' the flagging, such as "flag for follow up".
         self.tasks_DateCompleted = None     #Optional. dateTime. If set, email_CompleteTime is also required.
         self.email_CompleteTime = None      #Require if complete. dataTime.
@@ -195,14 +195,44 @@ class email_Flag(object):                   #http://msdn.microsoft.com/en-us/lib
         self.tasks_ReminderTime = None      #Optional. dateTime
         self.tasks_OrdinalDate = None       #Optional. dateTime. Time at which flag was set.
         self.tasks_SubOrdinalDate = None    #Optional. String. Should be used for sorting.
+    def parse(self, inwapxml_airsync_Flag):
+        email_elements = inwapxml_airsync_Flag.get_children()
+        for element in email_elements:
+            if element.tag == "tasks:Subject":
+                self.tasks_Subject = element.text
+            elif element.tag == "email:Status":
+                self.email_flag_Status = element.text
+            elif element.tag == "email:FlagType":
+                self.email_FlagType = element.text
+            elif element.tag == "tasks:DateCompleted":
+                self.tasks_DateCompleted = element.text
+            elif element.tag == "email:CompleteTime":
+                self.email_CompleteTime = element.text
+            elif element.tag == "tasks:StartDate":
+                self.tasks_StartDate = element.text
+            elif element.tag == "tasks:DueDate":
+                self.tasks_DueDate = element.text
+            elif element.tag == "tasks:UtcStartDate":
+                self.tasks_UtcStartDate = element.text
+            elif element.tag == "tasks:UtcDueDate":
+                self.tasks_UtcDueDate = element.text
+            elif element.tag == "tasks:ReminderSet":
+                self.tasks_ReminderSet = element.text
+            elif element.tag == "tasks:ReminderTime":
+                self.tasks_ReminderTime = element.text
+            elif element.tag == "tasks:OrdinalDate":
+                self.tasks_OrdinalDate = element.text
+            elif element.tag == "tasks:SubOrdinalDate":
+                self.tasks_SubOrdinalDate = element.text
 
-class email_Category(object):
-    def __init__(self, category):
-        self.name = category #Required. String. Name of category.
+#class email_Category(object):
+#    def __init__(self, category):
+#        self.name = category #Required. String. Name of category.
 
 class Email(object):
     """Aggregation of email elements that can be included in an 'Email' item to or from an AS server."""
     def __init__(self):
+        self.server_id = ""
         self.email_To = []                #String. List of string seperated by commas.
         self.email_Cc = []                #String. List of string seperated by commas.
         self.email_From = ""              #String
@@ -217,8 +247,8 @@ class Email(object):
         self.airsyncbase_Body = None      #"MSASAIRS.Body". Email message body.
         self.email_MessageClass = email_MessageClass.IPM_Note #String. See "MSASEMAIL.MessageClass" enum.
         self.email_InternetCPID = ""      #Required. String. Original MIME language code page ID.
-        self.email_Flag = email_Flag()    #Optional. email_Flag object.
-        self.airsyncbase_NativeBodyType = airsyncbase_NativeBodyType.HTML #Optional. Byte enum. BodyType stored and server before any modification during transport. 
+        self.email_Flag = None            #Optional. email_Flag object.
+        self.airsyncbase_NativeBodyType = airsyncbase_NativeBodyType.HTML #Optional. Byte enum. BodyType stored on server before any modification during transport. 
         self.email_ContentClass = ""            #Optional. String. The content class of the data.
         self.email2_UmCalledId = None           #Optional. Server to client. See http://msdn.microsoft.com/en-us/library/ee200631(v=exchg.80).aspx for when required.
         self.email2_UmUserNotes = None          #Optional. Server to client. See http://msdn.microsoft.com/en-us/library/ee158056(v=exchg.80).aspx for when required.
@@ -232,4 +262,75 @@ class Email(object):
         self.airsyncbase_BodyPart = None        #Optional. See "airsyncbase_BodyPart".
         self.email2_AccountId = ""              #Optional. Specific account email was sent to (i.e. if not to PrimarySmtpAddress).
         self.rm_RightsManagementLicense = []    #Optional. Contains rights management information.
+    def __repr__(self):
+        return "\r\n%s\r\n------Start Email------\r\nFrom: %s\r\nTo: %s\r\nCc: %s\r\nSubject: %s\r\nDateReceived: %s\r\nMessageClass: %s\r\nContentClass: %s\r\n\r\n%s\r\n-------End Email-------\r\n" % (super(Email, self).__repr__(), self.email_From, self.email_To, self.email_Cc, self.email_Subject, self.email_DateReceived, self.email_MessageClass,self.email_ContentClass,self.airsyncbase_Body.airsyncbase_Data)
+    def parse(self, inwapxml_airsync_command):
+        email_base = inwapxml_airsync_command.get_children()
+        self.server_id = email_base[0]
+        email_elements = email_base[1].get_children()
+        for element in email_elements:
+            if element.tag == "email:To":
+                self.email_To = element.text
+            elif element.tag == "email:Cc":
+                self.email_Cc = element.text
+            elif element.tag == "email:From":
+                self.email_From = element.text
+            elif element.tag == "email:Subject":
+                self.email_Subject = element.text
+            elif element.tag == "email:ReplyTo":
+                self.email_ReplyTo = element.text
+            elif element.tag == "email:DateReceived":
+                self.email_DateReceived = element.text
+            elif element.tag == "email:DisplayTo":
+                self.email_DisplayTo = element.text
+            elif element.tag == "email:ThreadTopic":
+                self.email_TreadTopic = element.text
+            elif element.tag == "email:Importance":
+                self.email_Importance = element.text
+            elif element.tag == "email:Read":
+                self.email_Read = element.text
+            elif element.tag == "airsyncbase:Attachments":
+                self.airsyncbase_Attachments = airsyncbase_Attachments.parse(element)
+            elif element.tag == "airsyncbase:Body":
+                body = airsyncbase_Body()
+                body.parse(element)
+                self.airsyncbase_Body = body
+            elif element.tag == "email:MessageClass":
+                self.email_MessageClass = element.text
+            elif element.tag == "email:InternetCPID":
+                self.email_InternetCPID = element.text
+            elif element.tag == "email:Flag":
+                flag = email_Flag()
+                flag.parse(element)
+                self.email_Flag = flag
+            elif element.tag == "airsyncbase:NativeBodyType":
+                self.airsyncbase_NativeBodyType = element.text
+            elif element.tag == "email:ContentClass":
+                self.email_Read = element.text
+            elif element.tag == "email2:UmCallerId":
+                self.email2_UmCalledId = element.text
+            elif element.tag == "email2:UmUserNotes":
+                self.email2_UmUserNotes = element.text
+            elif element.tag == "email2:ConversationId":
+                self.email2_ConversationId = element.text
+            elif element.tag == "email2:ConversationIndex":
+                self.email2_ConversationIndex = element.text
+            elif element.tag == "email2:LastVerbExecuted":
+                self.email2_LastVerbExecuted = element.text
+            elif element.tag == "email2:LastVerbExecutedTime":
+                self.email2_LastVerbExecutedTime = element.text
+            elif element.tag == "email2:ReceivedAsBcc":
+                self.email2_ReceivedAsBcc = element.text
+            elif element.tag == "email2:Sender":
+                self.email2_Sender = element.text
+            elif element.tag == "email:Categories":
+                categories_elements = element.get_children()
+                for category in categories_elements:
+                    self.email_Categories.append(category.text)
+            elif element.tag == "airsyncbase:BodyPart":
+                self.airsyncbase_Body = airsyncbase_BodyPart.parse(element)
+            elif element.tag == "email2:AccountId":
+                self.email2_AccountId = element.text
+            elif element.tag == "rm:RightsManagementLicense":
+                continue
         
