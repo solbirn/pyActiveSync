@@ -165,11 +165,12 @@ UpgradeLog*.htm
 App_Data/*.mdf
 App_Data/*.ldf
 
-#P4VS files
+#P4VS/Project files
 *.pyperf
 *.pyproj
 *.sln
 proto[-_]*.py
+*.asdb
 
 #############
 ## Windows detritus

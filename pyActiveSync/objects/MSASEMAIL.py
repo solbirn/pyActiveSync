@@ -250,23 +250,23 @@ class Email(object):
         self.email_Flag = None            #Optional. email_Flag object.
         self.airsyncbase_NativeBodyType = airsyncbase_NativeBodyType.HTML #Optional. Byte enum. BodyType stored on server before any modification during transport. 
         self.email_ContentClass = ""            #Optional. String. The content class of the data.
-        self.email2_UmCalledId = None           #Optional. Server to client. See http://msdn.microsoft.com/en-us/library/ee200631(v=exchg.80).aspx for when required.
-        self.email2_UmUserNotes = None          #Optional. Server to client. See http://msdn.microsoft.com/en-us/library/ee158056(v=exchg.80).aspx for when required.
-        self.email2_ConversationId = None       #Required. Byte array transfered as wbxml opaque data.
-        self.email2_ConversationIndex = None    #Required. Byte array transfered as wbxml opaque data. Contains a set of timestamps used by clients to generate a conversation tree view. The first timestamp identifies the date and time when the message was originally sent by the server. Additional timestamps are added when the message is forwarded or replied to.
-        self.email2_LastVerbExecuted = None     #Optional. Integer. Contains the most recent email action. Can be used to choose email message icon.
-        self.email2_LastVerbExecutedTime = None #Optional. dateTime. Contains the time of the email2_LastVerbExecuted.
-        self.email2_ReceivedAsBcc = False       #Optional. Boolean. Was email received as BCC.
+        self.email2_UmCalledId = ""             #Optional. Server to client. See http://msdn.microsoft.com/en-us/library/ee200631(v=exchg.80).aspx for when required.
+        self.email2_UmUserNotes = ""            #Optional. Server to client. See http://msdn.microsoft.com/en-us/library/ee158056(v=exchg.80).aspx for when required.
+        self.email2_ConversationId = ""         #Required. Byte array transfered as wbxml opaque data.
+        self.email2_ConversationIndex = ""      #Required. Byte array transfered as wbxml opaque data. Contains a set of timestamps used by clients to generate a conversation tree view. The first timestamp identifies the date and time when the message was originally sent by the server. Additional timestamps are added when the message is forwarded or replied to.
+        self.email2_LastVerbExecuted = ""       #Optional. Integer. Contains the most recent email action. Can be used to choose email message icon.
+        self.email2_LastVerbExecutedTime = ""   #Optional. dateTime. Contains the time of the email2_LastVerbExecuted.
+        self.email2_ReceivedAsBcc = "0"         #Optional. Boolean. Was email received as BCC.
         self.email2_Sender = ""                 #Optional. String. If email was from delegate, the delegate's name appears here.
         self.email_Categories = []              #Optional. List of "email_Category"s that apply to this message. Max 300. http://msdn.microsoft.com/en-us/library/ee625079(v=exchg.80).aspx
-        self.airsyncbase_BodyPart = None        #Optional. See "airsyncbase_BodyPart".
+        self.airsyncbase_BodyPart = ""          #Optional. See "airsyncbase_BodyPart".
         self.email2_AccountId = ""              #Optional. Specific account email was sent to (i.e. if not to PrimarySmtpAddress).
         self.rm_RightsManagementLicense = []    #Optional. Contains rights management information.
     def __repr__(self):
         return "\r\n%s\r\n------Start Email------\r\nFrom: %s\r\nTo: %s\r\nCc: %s\r\nSubject: %s\r\nDateReceived: %s\r\nMessageClass: %s\r\nContentClass: %s\r\n\r\n%s\r\n-------End Email-------\r\n" % (super(Email, self).__repr__(), self.email_From, self.email_To, self.email_Cc, self.email_Subject, self.email_DateReceived, self.email_MessageClass,self.email_ContentClass,self.airsyncbase_Body.airsyncbase_Data)
     def parse(self, inwapxml_airsync_command):
         email_base = inwapxml_airsync_command.get_children()
-        self.server_id = email_base[0]
+        self.server_id = email_base[0].text
         email_elements = email_base[1].get_children()
         for element in email_elements:
             if element.tag == "email:To":

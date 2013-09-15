@@ -23,23 +23,26 @@ from utils.as_code_pages import as_code_pages
 from utils.wbxml import wbxml_parser
 from utils.wapxml import wapxmltree, wapxmlnode
 from client.as_connect import as_connect
+from client.storage import storage
+
+from client.FolderSync import FolderSync
 from client.Sync import Sync
+from client.GetItemEstimate import GetItemEstimate
 
 from proto_creds import * #create a file proto_creds.py with vars: as_server, as_user, as_pass
+
+storage.create_db_if_none()
 
 #create wbxml_parser test
 parser = wbxml_parser(as_code_pages.build_as_code_pages())
 
-#create activesync connector - Note: no provisioning support yet
+#create activesync connector - Note: no provisioning support yet, so attm you must disable require provision on server to use
 as_conn = as_connect(as_server) #e.g. "as.myserver.com"
 as_conn.set_credential(as_user, as_pass)
 as_conn.options()
 
 #FolderSync
-foldersync_xmldoc_req = wapxmltree()
-xmlrootnode = wapxmlnode("FolderSync")
-foldersync_xmldoc_req.set_root(xmlrootnode, "folderhierarchy")
-xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, "0")
+foldersync_xmldoc_req = FolderSync.build()
 print "Request:"
 print foldersync_xmldoc_req
 
@@ -48,101 +51,63 @@ foldersync_xmldoc_res = parser.decode(res)
 print "\r\nResponse:"
 print foldersync_xmldoc_res
 
-foldersync_status = None
-foldersync_synckey = None
-foldersync_changes = None
+foldersync_parser = FolderSync.parser()
+folderhierarchy_changes = foldersync_parser.parse(foldersync_xmldoc_res)
+if len(folderhierarchy_changes) > 0:
+    storage.update_folderhierarchy(folderhierarchy_changes)
 
-for node in foldersync_xmldoc_res.get_root():
-    if node.tag is "Status":
-        foldersync_status = node
-        if foldersync_status.text is not "1":
-            raise Exception("AS FolderSync Exception")
-    elif node.tag is "SyncKey":
-        foldersync_synckey = node
-    elif node.tag is "Changes":
-        foldersync_changes = node
+#Sync function
+def do_sync(collection_ids):
+    as_sync_xmldoc_req = Sync.build(collection_ids) # 5 == inbox
+    print "\r\nRequest:"
+    print as_sync_xmldoc_req
 
-#Sync
-as_sync_xmldoc_req = wapxmltree()
-xml_as_sync_rootnode = wapxmlnode("Sync")
-as_sync_xmldoc_req.set_root(xml_as_sync_rootnode, "airsync")
+    res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
+    print "\r\nResponse:"
 
-xml_as_collections_node = wapxmlnode("Collections", xml_as_sync_rootnode)
+    if res == '':
+        print "Nothing to Sync!"
+    else:
+        as_sync_xmldoc_res = parser.decode(res)
+        print as_sync_xmldoc_res
 
-xml_as_Collection_1_node = wapxmlnode("Collection", xml_as_collections_node)  #http://msdn.microsoft.com/en-us/library/gg650891(v=exchg.80).aspx
-xml_as_SyncKey_node = wapxmlnode("SyncKey", xml_as_Collection_1_node, "0")    #http://msdn.microsoft.com/en-us/library/gg663426(v=exchg.80).aspx
-#xml_as_Supported_node = wapxmlnode("Supported", xml_as_Collection_1_node, "") #http://msdn.microsoft.com/en-us/library/gg650908(v=exchg.80).aspx
-xml_as_CollectionId_node = wapxmlnode("CollectionId", xml_as_Collection_1_node, "5") #"Inbox" #http://msdn.microsoft.com/en-us/library/gg650886(v=exchg.80).aspx
-#xml_as_DeleteAsMoves_node = wapxmlnode("DeleteAsMoves", xml_as_Collection_1_node, "1") #Default is "True" #OPT #http://msdn.microsoft.com/en-us/library/gg675480(v=exchg.80).aspx
-#xml_as_GetChanges_node = wapxmlnode("GetChanges", xml_as_Collection_1_node, "0") #MUST be False or absent when SyncKey is 0. #OPT http://msdn.microsoft.com/en-us/library/gg675447(v=exchg.80).aspx
-xml_as_WindowSize_node = wapxmlnode("WindowSize", xml_as_Collection_1_node, "512") #OPT Specify how many change you want at a time, up to 512. #http://msdn.microsoft.com/en-us/library/gg650865(v=exchg.80).aspx
-
-xml_as_Options_node = wapxmlnode("Options", xml_as_Collection_1_node)
-xml_as_Options_BodyPreference_node = wapxmlnode("airsyncbase:BodyPreference", xml_as_Options_node)
-xml_as_Options_BodyPreference_Type_node = wapxmlnode("airsyncbase:Type", xml_as_Options_BodyPreference_node)
-xml_as_Options_BodyPreference_Type_node.text = "1"
-xml_as_Options_BodyPreference_TruncationSize_node = wapxmlnode("airsyncbase:TruncationSize", xml_as_Options_BodyPreference_node)
-xml_as_Options_BodyPreference_TruncationSize_node.text = "10000000"
-
-
-#xml_as_ConverationMode_node = wapxmlnode("ConversationMode", xml_as_Collection_1_node, "0") #OPT #will implement later #http://msdn.microsoft.com/en-us/library/gg672034(v=exchg.80).aspx
-
-#xml_as_Commands_collection_node = wapxmlnode("Commands", xml_as_Collection_1_node)
-#xml_as_Commands_Add_node = wapxmlnode("Add", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675487(v=exchg.80).aspx
-#xml_as_Commands_Delete_node = wapxmlnode("Delete", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg663450(v=exchg.80).aspx
-#xml_as_Commands_Change_node = wapxmlnode("Change", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675544(v=exchg.80).aspx
-#xml_as_Commands_Fetch_node = wapxmlnode("Fetch", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675490(v=exchg.80).aspx
-
-#xml_as_collections_node = wapxmlnode("Collections", xml_as_sync_rootnode)
-
-print "\r\nRequest:"
-print as_sync_xmldoc_req
-
-res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
-as_sync_xmldoc_res = parser.decode(res)
-print "\r\nResponse:"
-print as_sync_xmldoc_res
-
-sync_parser = Sync.parser()
-sync_res1 = sync_parser.parse(as_sync_xmldoc_res)
-
-xml_as_SyncKey_node.text = sync_res1[0].SyncKey
-
-print "\r\nRequest:"
-print as_sync_xmldoc_req
-
-res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
-as_sync_xmldoc_res = parser.decode(res)
-print "\r\nResponse:"
-print as_sync_xmldoc_res
-
-sync_parser = Sync.parser()
-sync_res = sync_parser.parse(as_sync_xmldoc_res)
-print sync_res
-print sync_res[0].Commands
+        sync_parser = Sync.parser()
+        sync_res = sync_parser.parse(as_sync_xmldoc_res)
+        storage.update_emails(sync_res)
 
 #GetItemsEstimate
-getitemestimate_xmldoc_req = wapxmltree()
-xmlrootgetitemestimatenode = wapxmlnode("GetItemEstimate")
-getitemestimate_xmldoc_req.set_root(xmlrootgetitemestimatenode, "getitemestimate")
+def do_getitemestimates(collection_ids):
+    getitemestimate_xmldoc_req = GetItemEstimate.build(collection_ids)
+    print "\r\nRequest:"
+    print getitemestimate_xmldoc_req
 
-xmlcollectionsnode = wapxmlnode("Collections", xmlrootgetitemestimatenode)
+    res = as_conn.post("GetItemEstimate", parser.encode(getitemestimate_xmldoc_req))
+    getitemestimate_xmldoc_res = parser.decode(res)
+    print "\r\nResponse:"
+    print getitemestimate_xmldoc_res
 
-xml_Collection_1_node = wapxmlnode("Collection", xmlcollectionsnode)
-xml_gie_airsyncSyncKey_node = wapxmlnode("airsync:SyncKey", xml_Collection_1_node, xml_as_SyncKey_node.text)
-xml_gie_CollectionId_node = wapxmlnode("CollectionId", xml_Collection_1_node, "5")#?
-#xml_gie_ConverationMode_node = wapxmlnode("airsync:ConversationMode", xml_Collection_1_node, "0")#?
-xml_gie_airsyncOptions_node = wapxmlnode("airsync:Options", xml_Collection_1_node)
-xml_gie_airsyncClass_node = wapxmlnode("airsync:Class", xml_gie_airsyncOptions_node, "Email") #STR #http://msdn.microsoft.com/en-us/library/gg675489(v=exchg.80).aspx
-#xml_gie_airsyncFilterType_node = wapxmlnode("airsync:FilterType", xml_gie_airsyncOptions_node, "0")   #INT #http://msdn.microsoft.com/en-us/library/gg663562(v=exchg.80).aspx
-#xml_gie_airsyncMaxItems_node = wapxmlnode("airsync:MaxItems", xml_gie_airsyncMaxItems_node, 0) #OPTIONAL  #INT   #http://msdn.microsoft.com/en-us/library/gg675531(v=exchg.80).aspx
+    getitemestimate_parser = GetItemEstimate.parser()
+    getitemestimate_res = getitemestimate_parser.parse(getitemestimate_xmldoc_res)
+    return getitemestimate_res
 
-print "\r\nRequest:"
-print getitemestimate_xmldoc_req
+collections_to_sync = ["5"]
+getitemestimate_res = do_getitemestimates(collections_to_sync)
 
-res = as_conn.post("GetItemEstimate", parser.encode(getitemestimate_xmldoc_req))
-getitemestimate_xmldoc_res = parser.decode(res)
-print "\r\nResponse:"
-print getitemestimate_xmldoc_res
+if getitemestimate_res.Status == "2":
+    print "GetItemEstimate Status: Unknown folder specified"
+
+if getitemestimate_res.Status == "3":
+    print "GetItemEstimate Status: Sync needs to be primed."
+    do_sync(collections_to_sync)
+    getitemestimate_res = do_getitemestimates(collections_to_sync)
+
+
+if getitemestimate_res.Status == "1":
+    collections_to_sync = []
+    for collection_id, estimate in getitemestimate_res.Estimates:
+        if int(estimate) > 0:
+            collections_to_sync.append(collection_id)
+    if len(collections_to_sync) > 0:
+        do_sync(collections_to_sync)
 
 a = raw_input()
