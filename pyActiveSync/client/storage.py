@@ -65,6 +65,17 @@ class storage:
                                                 email2_AccountId text,
                                                 rm_RightsManagementLicense text)""")
         conn.commit()
+
+        indicies = ['CREATE UNIQUE INDEX "main"."MSASEMAIL_ServerId_Idx" ON "MSASEMAIL" ("ServerId" ASC)', 
+                    'CREATE UNIQUE INDEX "main"."SyncKey_CollectionId_Idx" ON "SyncKeys" ("CollectionId" ASC)',
+                    'CREATE UNIQUE INDEX "main"."KeyValue_Key_Idx" ON "KeyValue" ("Key" ASC)',
+                    'CREATE UNIQUE INDEX "main"."FolderHierarchy_ServerId_Idx" ON "FolderHierarchy" ("ServerId" ASC)',
+                    'CREATE  INDEX "main"."FolderHierarchy_ParentType_Idx" ON "FolderHierarchy" ("ParentId" ASC, "Type" ASC)',
+                    ]
+        for index in indicies:
+            curs.execute(index)
+        conn.commit()
+
         conn.close()
 
     @staticmethod
@@ -117,6 +128,22 @@ class storage:
         curs.execute(sql)
 
     @staticmethod
+    def update_email(email_dict, curs):
+        server_id = email_dict["server_id"]
+        del email_dict["server_id"]
+        email_sql = ""
+        for email_field in email_dict.keys():
+            email_sql += (", %s='%s' "  % (email_field, email_dict[email_field]))
+        email_sql = email_sql.lstrip(", ")
+        sql = "UPDATE MSASEMAIL SET %s WHERE ServerId='%s'" % (email_sql, server_id)
+        curs.execute(sql)
+    
+    @staticmethod
+    def delete_email(sever_id, curs):
+        sql = "DELETE FROM MSASEMAIL WHERE ServerId='%s'" % (sever_id)
+        curs.execute(sql)
+
+    @staticmethod
     def update_emails(collections, path="pyas.asdb"):
         conn = sqlite3.connect(path)
         curs = conn.cursor()
@@ -131,12 +158,13 @@ class storage:
             for command in collection.Commands:
                 if command[0] == "Add":
                     storage.insert_email(command[1], curs)
-                elif command[0] == "Delete":
-                    continue
+                if command[0] == "Delete":
+                    storage.delete_email(command[1], curs)
                 elif command[0] == "Change":
-                    continue
+                    storage.update_email(command[1], curs)
                 elif command[0] == "SoftDelete":
-                    continue
+                    storage.delete_email(command[1], curs)
+
         conn.commit()
         conn.close()
 

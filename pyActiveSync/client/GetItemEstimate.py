@@ -24,7 +24,8 @@ class GetItemEstimate:
     class getitemestimate_response:
         def __init__(self):
             self.Status = None
-            self.Estimates = []
+            self.CollectionId = None
+            self.Estimate = None
 
     @staticmethod
     def build(collection_ids):
@@ -62,29 +63,27 @@ class GetItemEstimate:
                 raise AttributeError("Root tag '%s' submitted to '%s' parser. Should be '%s'." % (root_element.tag, root_tag, root_tag))
 
             getitemestimate_getitemestimate_children = root_element.get_children()
-            if len(getitemestimate_getitemestimate_children) >  1:
-                raise AttributeError("%s response does not conform to any known %s responses." % (root_tag, root_tag))
 
-            getitemestimate_response_children = getitemestimate_getitemestimate_children[0].get_children()
+            #getitemestimate_responses = getitemestimate_getitemestimate_children.get_children()
 
-            self.response = GetItemEstimate.getitemestimate_response()
+            self.responses = []
 
-            for element in getitemestimate_response_children:
-                if element.tag is "Status":
-                    self.response.Status = element.text
-                    if self.response.Status != "1":
-                        return self.response
-                elif element.tag == "Collection":
-                    getitemestimate_collection_children = element.get_children()
-                    collection_id = 0
-                    estimate = 0
-                    for collection_child in getitemestimate_collection_children:
-                        if collection_child.tag == "CollectionId":
-                            collection_id = collection_child.text
-                        elif collection_child.tag == "Estimate":
-                            estimate = collection_child.text
-                    self.response.Estimates.append((collection_id, estimate))
-            return self.response
+            for getitemestimate_response_child in getitemestimate_getitemestimate_children:
+                response = GetItemEstimate.getitemestimate_response()
+                for element in getitemestimate_response_child:
+                    if element.tag is "Status":
+                        response.Status = element.text
+                    elif element.tag == "Collection":
+                        getitemestimate_collection_children = element.get_children()
+                        collection_id = 0
+                        estimate = 0
+                        for collection_child in getitemestimate_collection_children:
+                            if collection_child.tag == "CollectionId":
+                                response.CollectionId = collection_child.text
+                            elif collection_child.tag == "Estimate":
+                                response.Estimate = collection_child.text
+                self.responses.append(response)
+            return self.responses
 
 
 

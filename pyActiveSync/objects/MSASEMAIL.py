@@ -306,7 +306,7 @@ class Email(object):
             elif element.tag == "airsyncbase:NativeBodyType":
                 self.airsyncbase_NativeBodyType = element.text
             elif element.tag == "email:ContentClass":
-                self.email_Read = element.text
+                self.email_ContentClass = element.text
             elif element.tag == "email2:UmCallerId":
                 self.email2_UmCalledId = element.text
             elif element.tag == "email2:UmUserNotes":
@@ -333,4 +333,77 @@ class Email(object):
                 self.email2_AccountId = element.text
             elif element.tag == "rm:RightsManagementLicense":
                 continue
-        
+      
+def parse_email_to_dict(data, type=1):
+    email_dict = {}
+    if type == 1:
+        email_base = data.get_children()
+        email_dict.update({"server_id" : email_base[0].text})
+        email_elements = email_base[1].get_children()
+        for element in email_elements:
+            if element.tag == "email:To":
+                    email_dict.update({ "email_To" : element.text })
+            elif element.tag == "email:Cc":
+                    email_dict.update({ "email_Cc" : element.text })
+            elif element.tag == "email:From":
+                    email_dict.update({ "email_From" : element.text })
+            elif element.tag == "email:Subject":
+                    email_dict.update({ "email_Subject" : element.text })
+            elif element.tag == "email:ReplyTo":
+                    email_dict.update({ "email_ReplyTo" : element.text })
+            elif element.tag == "email:DateReceived":
+                    email_dict.update({ "email_DateReceived" : element.text })
+            elif element.tag == "email:DisplayTo":
+                    email_dict.update({ "email_DisplayTo" : element.text })
+            elif element.tag == "email:ThreadTopic":
+                    email_dict.update({ "email_TreadTopic" : element.text })
+            elif element.tag == "email:Importance":
+                    email_dict.update({ "email_Importance" : element.text })
+            elif element.tag == "email:Read":
+                    email_dict.update({ "email_Read" : element.text })
+            elif element.tag == "airsyncbase:Attachments":
+                    email_dict.update({ "airsyncbase_Attachments" : airsyncbase_Attachments.parse(element)})
+            elif element.tag == "airsyncbase:Body":
+                body = airsyncbase_Body()
+                body.parse(element)
+                email_dict.update({ "airsyncbase_Body" : body })
+            elif element.tag == "email:MessageClass":
+                    email_dict.update({ "email_MessageClass" : element.text })
+            elif element.tag == "email:InternetCPID":
+                    email_dict.update({ "email_InternetCPID" : element.text })
+            elif element.tag == "email:Flag":
+                    flag = email_Flag()
+                    flag.parse(element)
+                    email_dict.update({ "email_Flag" : flag})
+            elif element.tag == "airsyncbase:NativeBodyType":
+                    email_dict.update({ "airsyncbase_NativeBodyType" : element.text })
+            elif element.tag == "email:ContentClass":
+                    email_dict.update({ "email_ContentClass" : element.text })
+            elif element.tag == "email2:UmCallerId":
+                    email_dict.update({ "email2_UmCalledId" : element.text })
+            elif element.tag == "email2:UmUserNotes":
+                    email_dict.update({ "email2_UmUserNotes" : element.text })
+            elif element.tag == "email2:ConversationId":
+                    email_dict.update({ "email2_ConversationId" : element.text })
+            elif element.tag == "email2:ConversationIndex":
+                    email_dict.update({ "email2_ConversationIndex" : element.text })
+            elif element.tag == "email2:LastVerbExecuted":
+                    email_dict.update({ "email2_LastVerbExecuted" : element.text })
+            elif element.tag == "email2:LastVerbExecutedTime":
+                    email_dict.update({ "email2_LastVerbExecutedTime" : element.text })
+            elif element.tag == "email2:ReceivedAsBcc":
+                    email_dict.update({ "email2_ReceivedAsBcc" : element.text })
+            elif element.tag == "email2:Sender":
+                    email_dict.update({ "email2_Sender" : element.text })
+            elif element.tag == "email:Categories":
+                    email_dict.update({ "Categories" : []})
+                    categories_elements = element.get_children()
+                    for category in categories_elements:
+                        email_dict["Categories"].append(category.text)
+            elif element.tag == "airsyncbase:BodyPart":
+                    email_dict.update({ "airsyncbase_Body" : airsyncbase_BodyPart.parse(element)})
+            elif element.tag == "email2:AccountId":
+                    email_dict.update({ "email2_AccountId" : element.text })
+            elif element.tag == "rm:RightsManagementLicense":
+                continue
+    return email_dict

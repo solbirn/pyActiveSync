@@ -20,6 +20,8 @@
 from utils.wapxml import wapxmltree, wapxmlnode
 from client.storage import storage
 
+from objects.MSASEMAIL import Email, parse_email_to_dict
+
 class Sync:
     """'Sync' command builders and parsers"""
     class sync_response_collection:
@@ -70,10 +72,12 @@ class Sync:
         def __init__(self, inwapxml=None):
             self.wapxml = inwapxml
         def parse_message(self, message):
-            from objects.MSASEMAIL import Email
+            
             new_message = Email()
             new_message.parse(message)
             return new_message
+        def parse_update(self, message):
+            return parse_email_to_dict(message)
         def parse(self, inwapxml=None):
             if inwapxml:
                 self.wapxml = inwapxml
@@ -106,7 +110,7 @@ class Sync:
                 if airsyncbase_sync_collections_children[collections_counter].tag != "Collection":
                     raise AttributeError("Sync response does not conform to any known Sync responses.")
 
-                airsyncbase_sync_collection_children = airsyncbase_sync_collections_children[0].get_children()
+                airsyncbase_sync_collection_children = airsyncbase_sync_collections_children[collections_counter].get_children()
                 airsyncbase_sync_collection_children_count = len(airsyncbase_sync_collection_children)
                 collection_counter = 0
                 new_collection = Sync.sync_response_collection()
@@ -119,7 +123,6 @@ class Sync:
                         new_collection.Status = airsyncbase_sync_collection_children[collection_counter].text
                         if new_collection.Status != "1":
                             self.response.append(new_collection)
-                            break
                     elif airsyncbase_sync_collection_children[collection_counter].tag == "MoreAvailable":
                         new_collection.MoreAvailable = airsyncbase_sync_collection_children[collection_counter].text
                     elif airsyncbase_sync_collection_children[collection_counter].tag == "Commands":
@@ -131,14 +134,12 @@ class Sync:
                                 add_message = self.parse_message(airsyncbase_sync_commands_children[commands_counter])
                                 new_collection.Commands.append(("Add", add_message))
                             elif airsyncbase_sync_commands_children[commands_counter].tag == "Delete":
-                                commands_counter+=1
-                                continue
+                                new_collection.Commands.append(("Delete", airsyncbase_sync_commands_children[commands_counter].get_children()[0].text))
                             elif airsyncbase_sync_commands_children[commands_counter].tag == "Change":
-                                commands_counter+=1
-                                continue
+                                update_message = self.parse_update(airsyncbase_sync_commands_children[commands_counter])
+                                new_collection.Commands.append(("Change", update_message))
                             elif airsyncbase_sync_commands_children[commands_counter].tag == "SoftDelete":
-                                commands_counter+=1
-                                continue
+                                new_collection.Commands.append(("SoftDelete", airsyncbase_sync_commands_children[commands_counter].get_children()[0].text))
                             commands_counter+=1
                     elif airsyncbase_sync_collection_children[collection_counter].tag == "Responses":
                         print airsyncbase_sync_collection_children[collection_counter]
