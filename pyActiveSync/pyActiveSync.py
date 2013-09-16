@@ -28,6 +28,7 @@ from client.storage import storage
 from client.FolderSync import FolderSync
 from client.Sync import Sync
 from client.GetItemEstimate import GetItemEstimate
+from client.ResolveRecipients import ResolveRecipients
 
 from proto_creds import * #create a file proto_creds.py with vars: as_server, as_user, as_pass
 
@@ -40,6 +41,16 @@ parser = wbxml_parser(as_code_pages.build_as_code_pages())
 as_conn = as_connect(as_server) #e.g. "as.myserver.com"
 as_conn.set_credential(as_user, as_pass)
 as_conn.options()
+
+#ResolveRecipients
+resolverecipients_xmldoc_req = ResolveRecipients.build("zebra")
+print "Request:"
+print resolverecipients_xmldoc_req
+
+res = as_conn.post("ResolveRecipients", parser.encode(resolverecipients_xmldoc_req))
+resolverecipients_xmldoc_res = parser.decode(res)
+print "\r\nResponse:"
+print resolverecipients_xmldoc_res
 
 #FolderSync
 foldersync_xmldoc_req = FolderSync.build()

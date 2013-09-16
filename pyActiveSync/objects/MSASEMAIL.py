@@ -21,7 +21,6 @@
 
 from MSASAIRS import airsyncbase_Type, airsyncbase_Body, airsyncbase_Attachment, airsyncbase_Attachments, airsyncbase_Method, airsyncbase_NativeBodyType, airsyncbase_BodyPart
 
-
 class email_Importance:
     Low =    0
     Normal = 1
