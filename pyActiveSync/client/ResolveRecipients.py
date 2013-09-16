@@ -43,12 +43,12 @@ class ResolveRecipients:
 
     @staticmethod
     def parse(inwbxml):
-        self.wapxml = inwapxml
+        wapxml = inwapxml
 
         namespace = "resolverecipients"
         root_tag = "ResolveRecipients"
 
-        root_element = self.wapxml.get_root()
+        root_element = wapxml.get_root()
         if root_element.get_xmlns() != namespace:
             raise AttributeError("Xmlns '%s' submitted to '%s' parser. Should be '%s'." % (root_element.get_xmlns(), root_tag, namespace))
         if root_element.tag != root_tag:
