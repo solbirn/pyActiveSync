@@ -21,7 +21,7 @@ from utils.wapxml import wapxmltree, wapxmlnode
 from client.storage import storage
 
 class FolderUpdate:
-    """http://msdn.microsoft.com/en-us/library/gg650949(v=exchg.80).aspx"""
+    """http://msdn.microsoft.com/en-us/library/ee160573(v=exchg.80).aspx"""
 
     @staticmethod
     def build(server_id, parent_id, display_name):
@@ -35,7 +35,7 @@ class FolderUpdate:
         return folderupdate_xmldoc_req
 
     @staticmethod
-    def parse(inwbxml):
+    def parse(inwapxml):
         wapxml = inwapxml
 
         namespace = "folderhierarchy"

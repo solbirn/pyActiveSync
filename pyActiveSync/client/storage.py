@@ -77,6 +77,22 @@ class storage:
         conn.commit()
 
         conn.close()
+    
+    @staticmethod
+    def get_conn_curs(path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        return conn, curs
+
+    @staticmethod
+    def close_conn_curs(conn):
+        try:
+            conn.commit()
+            conn.close()
+        except:
+            return False
+        return True
+
 
     @staticmethod
     def insert_folderhierarchy_change(folder, curs):
@@ -112,6 +128,26 @@ class storage:
         conn.close()
 
     @staticmethod
+    def get_folderhierarchy_folder_by_name(foldername, curs):
+        sql = "SELECT * FROM FolderHierarchy WHERE DisplayName = '%s'" % foldername
+        curs.execute(sql)
+        folder_row = curs.fetchone()
+        if folder_row:
+            return folder_row
+        else:
+            return False
+
+    @staticmethod
+    def get_folderhierarchy_folder_by_id(server_id, curs):
+        sql = "SELECT * FROM FolderHierarchy WHERE ServerId = '%s'" % server_id
+        curs.execute(sql)
+        folder_row = curs.fetchone()
+        if folder_row:
+            return folder_row
+        else:
+            return False
+
+    @staticmethod
     def insert_email(email, curs):
         sql = """INSERT INTO MSASEMAIL VALUES ('%s', '%s', '%s', '%s', '%s', 
                                                 '%s', '%s', %s, '%s', '%s', 
@@ -119,8 +155,8 @@ class storage:
                                                 '%s', '%s', '%s', '%s', '%s', 
                                                 '%s', '%s', '%s', '%s', '%s', 
                                                 '%s', '%s', %s, '%s', '%s')"""  % (
-                                                           email.server_id, email.email_To, repr(email.email_Cc), email.email_From, email.email_Subject,
-                                                           email.email_ReplyTo, email.email_DateReceived, repr(email.email_DisplayTo), email.email_ThreadTopic, email.email_Importance,
+                                                           email.server_id, email.email_To.replace("'","''"), repr(email.email_Cc).replace("'","''"), email.email_From.replace("'","''"), email.email_Subject.replace("'","''"),
+                                                           email.email_ReplyTo.replace("'","''"), email.email_DateReceived, repr(email.email_DisplayTo), email.email_ThreadTopic.replace("'","''"), email.email_Importance,
                                                            email.email_Read, repr(email.airsyncbase_Attachments), repr(email.airsyncbase_Body), email.email_MessageClass, email.email_InternetCPID,
                                                            repr(email.email_Flag), email.airsyncbase_NativeBodyType, email.email_ContentClass, email.email2_UmCalledId, email.email2_UmUserNotes,
                                                            email.email2_ConversationId, email.email2_ConversationIndex, email.email2_LastVerbExecuted, email.email2_LastVerbExecutedTime, email.email2_ReceivedAsBcc,
@@ -202,3 +238,15 @@ class storage:
         import os
         if not os.path.isfile(path):
             storage.create_db(path)
+
+    @staticmethod
+    def get_folder_name_to_id_dict(path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        curs.execute("SELECT DisplayName, ServerId FROM FolderHierarchy")
+        id_name_list_of_tuples = curs.fetchall()
+        name_id_dict = {}
+        for id_name in id_name_list_of_tuples:
+            name_id_dict.update({ id_name[0] : id_name[1] })
+        conn.close()
+        return name_id_dict

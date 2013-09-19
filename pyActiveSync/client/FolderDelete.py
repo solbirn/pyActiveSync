@@ -21,7 +21,7 @@ from utils.wapxml import wapxmltree, wapxmlnode
 from client.storage import storage
 
 class FolderDelete:
-    """http://msdn.microsoft.com/en-us/library/gg650949(v=exchg.80).aspx"""
+    """http://msdn.microsoft.com/en-us/library/ee201525(v=exchg.80).aspx"""
 
     @staticmethod
     def build(server_id):
@@ -33,7 +33,7 @@ class FolderDelete:
         return folderdelete_xmldoc_req
 
     @staticmethod
-    def parse(inwbxml):
+    def parse(inwapxml):
         wapxml = inwapxml
 
         namespace = "folderhierarchy"

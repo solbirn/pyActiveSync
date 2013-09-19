@@ -24,18 +24,18 @@ class FolderCreate:
     """http://msdn.microsoft.com/en-us/library/gg650949(v=exchg.80).aspx"""
 
     @staticmethod
-    def build(parent_id, display_name, type):
+    def build(parent_id, display_name, _type):
         foldercreate_xmldoc_req = wapxmltree()
         xmlrootnode = wapxmlnode("FolderCreate")
         foldercreate_xmldoc_req.set_root(xmlrootnode, "folderhierarchy")
         xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, storage.get_synckey("0"))
         xmlparentidnode = wapxmlnode("ParentId", xmlrootnode, parent_id)
         xmldisplaynamenode = wapxmlnode("DisplayName", xmlrootnode, display_name)
-        xmltypenode = wapxmlnode("Type", xmlrootnode, type) #See objects.MSASCMD.FolderHierarchy.FolderCreate.Type
+        xmltypenode = wapxmlnode("Type", xmlrootnode, _type) #See objects.MSASCMD.FolderHierarchy.FolderCreate.Type
         return foldercreate_xmldoc_req
 
     @staticmethod
-    def parse(inwbxml):
+    def parse(inwapxml):
         wapxml = inwapxml
 
         namespace = "folderhierarchy"

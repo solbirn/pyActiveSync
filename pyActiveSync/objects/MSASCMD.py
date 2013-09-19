@@ -29,6 +29,12 @@ class FolderHierarchy:
             Tasks =     15
             Journal =   16
             Notes =     17
+    class Folder:
+        def __init__(self, ParentId=None, DisplayName=None, Type=None, ServerId=None):
+            self.ServerId = ServerId
+            self.ParentId = ParentId
+            self.DisplayName = DisplayName
+            self.Type = Type
 
 class ResolveRecipients:
     class CertificateRetrieval:
@@ -38,3 +44,11 @@ class ResolveRecipients:
     class Type:
         Contacts =  1
         GAL =       2
+
+class Ping:
+    class Class:
+        Email = "Email"
+        Calendar = "Calendar"
+        Contacts = "Contacts"
+        Tasks = "Tasks"
+        Notes = "Notes"
