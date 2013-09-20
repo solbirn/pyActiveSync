@@ -220,7 +220,7 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-#Virtual python env
+#Virtual python environment
 /pyActiveSync/pyAS
 /.gitattributes
 /.gitignore
