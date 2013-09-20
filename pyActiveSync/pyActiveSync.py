@@ -19,6 +19,8 @@
 
 # Code Playground
 
+import sys
+
 from utils.as_code_pages import as_code_pages
 from utils.wbxml import wbxml_parser
 from utils.wapxml import wapxmltree, wapxmlnode
@@ -34,21 +36,31 @@ from client.FolderUpdate import FolderUpdate
 from client.FolderDelete import FolderDelete
 from client.Ping import Ping
 from client.MoveItems import MoveItems
+from client.Provision import Provision
+
+from objects.MSASCMD import FolderHierarchy, as_status
 
 from proto_creds import * #create a file proto_creds.py with vars: as_server, as_user, as_pass
 
+pyver = sys.version_info
+
 storage.create_db_if_none()
+conn, curs = storage.get_conn_curs()
+device_info = {"Model":"%d.%d.%d" % (pyver[0], pyver[1], pyver[2]), "IMEI":"12345", "FriendlyName":"My pyAS Client", "OS":"Python", "OSLanguage":"en-us", "PhoneNumber": "NA", "MobileOperator":"NA", "UserAgent": "pyAS"}
 
 #create wbxml_parser test
 parser = wbxml_parser(as_code_pages.build_as_code_pages())
 
-#create activesync connector - Note: no provisioning support yet, so attm you must disable require provision on server to use
+#create activesync connector
 as_conn = as_connect(as_server) #e.g. "as.myserver.com"
 as_conn.set_credential(as_user, as_pass)
 as_conn.options()
+policykey = storage.get_keyvalue("X-MS-PolicyKey")
+if policykey:
+    as_conn.set_policykey(policykey)
 
 def as_request(cmd, wapxml_req):
-    print "%s Request:" % cmd
+    print "\r\n%s Request:" % cmd
     print wapxml_req
     res = as_conn.post(cmd, parser.encode(wapxml_req))
     wapxml_res = parser.decode(res)
@@ -56,40 +68,51 @@ def as_request(cmd, wapxml_req):
     print wapxml_res
     return wapxml_res
 
-conn, curs = storage.get_conn_curs()
+#Provision functions
+def do_apply_eas_policies(policies):
+    for policy in policies.keys():
+        print "Virtually applying %s = %s" % (policy, policies[policy])
+    return True
 
-##MoveItems
-#moveitems_xmldoc_req = MoveItems.build([("5:24","5","10")])
-#moveitems_xmldoc_res = as_request("MoveItems", moveitems_xmldoc_req)
-#moveitems_res = MoveItems.parse(moveitems_xmldoc_res)
-#for moveitem_res in moveitems_res:
-#    if moveitem_res[1] == "3":
-#        storage.update_email({"server_id": moveitem_res[0] ,"ServerId": moveitem_res[2]}, curs)
-#        conn.commit()
+def do_provision():
+    provision_xmldoc_req = Provision.build("0", device_info)
+    as_conn.set_policykey("0")
+    provision_xmldoc_res = as_request("Provision", provision_xmldoc_req)
+    status, policystatus, policykey, policytype, policydict, settings_status = Provision.parse(provision_xmldoc_res)
+    as_conn.set_policykey(policykey)
+    storage.update_keyvalue("X-MS-PolicyKey", policykey)
+    storage.update_keyvalue("EASPolicies", repr(policydict))
+    if do_apply_eas_policies(policydict):
+        provision_xmldoc_req = Provision.build(policykey)
+        provision_xmldoc_res = as_request("Provision", provision_xmldoc_req)
+        status, policystatus, policykey, policytype, policydict, settings_status = Provision.parse(provision_xmldoc_res)
+        if status == "1":
+            as_conn.set_policykey(policykey)
+            storage.update_keyvalue("X-MS-PolicyKey", policykey)
 
-#Ping
-from objects.MSASCMD import Ping as PingObjs
-ping_xmldoc_req = Ping.build("60", [("5", "Email"),("10","Email")])
-ping_xmldoc_res = as_request("Ping", ping_xmldoc_req)
-print Ping.parse(ping_xmldoc_res)
-
-#FolderOps vars
-from objects.MSASCMD import FolderHierarchy
-
-#FolderSync
-foldersync_xmldoc_req = FolderSync.build()
+#FolderSync + Provision
+foldersync_xmldoc_req = FolderSync.build(storage.get_synckey("0"))
 foldersync_xmldoc_res = as_request("FolderSync", foldersync_xmldoc_req)
-folderhierarchy_changes = FolderSync.parse(foldersync_xmldoc_res)
-if len(folderhierarchy_changes) > 0:
-    storage.update_folderhierarchy(folderhierarchy_changes)
+changes, synckey, status = FolderSync.parse(foldersync_xmldoc_res)
+if int(status) > 138 and int(status) < 145:
+    print as_status("FolderSync", status)
+    do_provision()
+    foldersync_xmldoc_res = as_request("FolderSync", foldersync_xmldoc_req)
+    changes, synckey, status = FolderSync.parse(foldersync_xmldoc_res)
+    if int(status) > 138 and int(status) < 145:
+        print as_status("FolderSync", status)
+        raise Exception("Unsolvable provisoning error: %s. Cannot continue." % status)
+if len(changes) > 0:
+    storage.update_folderhierarchy(changes)
+    storage.update_synckey(synckey, "0", curs)
+    conn.commit()
 
 #FolderCreate
 parent_folder = storage.get_folderhierarchy_folder_by_name("Inbox", curs)
 new_folder = FolderHierarchy.Folder(parent_folder[0], "TestFolder1", str(FolderHierarchy.FolderCreate.Type.Mail))
-foldercreate_xmldoc_req = FolderCreate.build(new_folder.ParentId, new_folder.DisplayName, new_folder.Type)
+foldercreate_xmldoc_req = FolderCreate.build(storage.get_synckey("0"), new_folder.ParentId, new_folder.DisplayName, new_folder.Type)
 foldercreate_xmldoc_res = as_request("FolderCreate", foldercreate_xmldoc_req)
 foldercreate_res_parsed = FolderCreate.parse(foldercreate_xmldoc_res)
-print foldercreate_res_parsed
 if foldercreate_res_parsed[0] == "1":
     new_folder.ServerId = foldercreate_res_parsed[2]
     storage.insert_folderhierarchy_change(new_folder, curs)
@@ -102,10 +125,9 @@ new_folder_name = "TestFolder2"
 #new_parent_id = parent_folder = storage.get_folderhierarchy_folder_by_name("Inbox", curs)
 folder_row = storage.get_folderhierarchy_folder_by_name(old_folder_name, curs)
 update_folder = FolderHierarchy.Folder(folder_row[1], new_folder_name, folder_row[3], folder_row[0])
-folderupdate_xmldoc_req = FolderUpdate.build(update_folder.ServerId, update_folder.ParentId, update_folder.DisplayName)
+folderupdate_xmldoc_req = FolderUpdate.build(storage.get_synckey("0"), update_folder.ServerId, update_folder.ParentId, update_folder.DisplayName)
 folderupdate_xmldoc_res = as_request("FolderUpdate", folderupdate_xmldoc_req)
 folderupdate_res_parsed = FolderUpdate.parse(folderupdate_xmldoc_res)
-print folderupdate_res_parsed
 if folderupdate_res_parsed[0] == "1":
     new_folder.DisplayName = new_folder_name
     storage.update_folderhierarchy_change(new_folder, curs)
@@ -117,18 +139,13 @@ folder_name = "TestFolder2"
 folder_row = storage.get_folderhierarchy_folder_by_name(folder_name, curs)
 delete_folder = FolderHierarchy.Folder()
 delete_folder.ServerId = folder_row[0]
-folderdelete_xmldoc_req = FolderDelete.build(delete_folder.ServerId)
+folderdelete_xmldoc_req = FolderDelete.build(storage.get_synckey("0"), delete_folder.ServerId)
 folderdelete_xmldoc_res = as_request("FolderDelete", folderdelete_xmldoc_req)
 folderdelete_res_parsed = FolderDelete.parse(folderdelete_xmldoc_res)
-print folderdelete_res_parsed
 if folderdelete_res_parsed[0] == "1":
     storage.delete_folderhierarchy_change(delete_folder, curs)
     storage.update_synckey(folderdelete_res_parsed[1], "0", curs)
     conn.commit()
-
-#Folder Ops cleanup
-if storage.close_conn_curs(conn):
-        del conn, curs
 
 #ResolveRecipients
 resolverecipients_xmldoc_req = ResolveRecipients.build("zebra")
@@ -136,26 +153,22 @@ resolverecipients_xmldoc_res = as_request("ResolveRecipients", resolverecipients
 
 #Sync function
 def do_sync(collection_ids):
-    as_sync_xmldoc_req = Sync.build(collection_ids)
+    as_sync_xmldoc_req = Sync.build(storage.get_synckeys_dict(curs), collection_ids)
     print "\r\nRequest:"
     print as_sync_xmldoc_req
-
     res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
     print "\r\nResponse:"
-
     if res == '':
         print "Nothing to Sync!"
     else:
         as_sync_xmldoc_res = parser.decode(res)
         print as_sync_xmldoc_res
-
-        sync_parser = Sync.parser()
-        sync_res = sync_parser.parse(as_sync_xmldoc_res)
+        sync_res = Sync.parse(as_sync_xmldoc_res)
         storage.update_emails(sync_res)
 
 #GetItemsEstimate
 def do_getitemestimates(collection_ids):
-    getitemestimate_xmldoc_req = GetItemEstimate.build(collection_ids)
+    getitemestimate_xmldoc_req = GetItemEstimate.build(storage.get_synckeys_dict(curs), collection_ids)
     getitemestimate_xmldoc_res = as_request("GetItemEstimate", getitemestimate_xmldoc_req)
 
     getitemestimate_res = GetItemEstimate.parse(getitemestimate_xmldoc_res)
@@ -177,25 +190,41 @@ def getitemestimate_check_prime_collections(getitemestimate_responses):
         do_sync(needs_synckey)
     return has_synckey, needs_synckey
 
-#GetItemsEstimate and Sync process test
-collections_to_sync = ["5","10"]
-getitemestimate_responses = do_getitemestimates(collections_to_sync)
+#Ping (push), GetItemsEstimate and Sync process test
+#Ping
+ping_xmldoc_req = Ping.build("60", [("5", "Email"),("10","Email")]) #5=Inbox,10=Sent Items
+ping_xmldoc_res = as_request("Ping", ping_xmldoc_req)
+ping_res = Ping.parse(ping_xmldoc_res)
+if ping_res[0] == "2": #2=New changes available
+    getitemestimate_responses = do_getitemestimates(ping_res[3])
 
-has_synckey, just_got_synckey = getitemestimate_check_prime_collections(getitemestimate_responses)
+    has_synckey, just_got_synckey = getitemestimate_check_prime_collections(getitemestimate_responses)
 
-if (len(has_synckey) < collections_to_sync) or (len(just_got_synckey) > 0): #grab new estimates, since they changed
-    getitemestimate_responses = do_getitemestimates(has_synckey)
+    if (len(has_synckey) < ping_res[3]) or (len(just_got_synckey) > 0): #grab new estimates, since they changed
+        getitemestimate_responses = do_getitemestimates(has_synckey)
 
-collections_to_sync = [] 
+    collections_to_sync = [] 
 
-for response in getitemestimate_responses:
-    if response.Status == "1":
-        if int(response.Estimate) > 0:
-            collections_to_sync.append(response.CollectionId)
-    else:
-        print "GetItemEstimate Status (error): %s, CollectionId: %s." % (response.Status, response.CollectionId)
+    for response in getitemestimate_responses:
+        if response.Status == "1":
+            if int(response.Estimate) > 0:
+                collections_to_sync.append(response.CollectionId)
+        else:
+            print "GetItemEstimate Status (error): %s, CollectionId: %s." % (response.Status, response.CollectionId)
 
-if len(collections_to_sync) > 0:
-    do_sync(collections_to_sync)
+    if len(collections_to_sync) > 0:
+        do_sync(collections_to_sync)
+
+##MoveItems
+#moveitems_xmldoc_req = MoveItems.build([("5:24","5","10")])
+#moveitems_xmldoc_res = as_request("MoveItems", moveitems_xmldoc_req)
+#moveitems_res = MoveItems.parse(moveitems_xmldoc_res)
+#for moveitem_res in moveitems_res:
+#    if moveitem_res[1] == "3":
+#        storage.update_email({"server_id": moveitem_res[0] ,"ServerId": moveitem_res[2]}, curs)
+#        conn.commit()
+
+if storage.close_conn_curs(conn):
+        del conn, curs
 
 #a = raw_input()
