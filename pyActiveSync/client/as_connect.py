@@ -51,6 +51,28 @@ class as_connect(object):
         res = conn.getresponse()
         #print res.status, res.reason, res.getheaders()
         return res.read()
+
+    def fetch_multipart(self, body, filename="fetched_file.tmp"):
+        """http://msdn.microsoft.com/en-us/library/ee159875(v=exchg.80).aspx"""
+        headers = self.headers
+        headers.update({"MS-ASAcceptMultiPart":"T"})
+        url = self.POST_URL_TEMPLATE % ("ItemOperations", self.username)
+        conn = httplib.HTTPSConnection(self.server, self.port)
+        conn.request("POST",url, body, headers)
+        res = conn.getresponse()
+        if res.getheaders()["Content-Type"] == "application/vnd.ms-sync.multipart":
+            PartCount = int(res.read(4))
+            PartMetaData = []
+            for partindex in range(0, PartCount):
+                PartMetaData.append((int(res.read(4))), (int(res.read(4))))
+            wbxml_part = res.read(PartMetaData[0][1])
+            fetched_file = open(filename, "wb")
+            for partindex in range(1, PartCount):
+                fetched_file.write(res.read(PartMetaData[0][partindex]))
+            fetched_file.close()
+            return wbxml, filename
+        else:
+            raise TypeError("Client requested MultiPart response, but server responsed with inline.")
     
     def options(self):
         conn = httplib.HTTPSConnection(self.server, self.port)

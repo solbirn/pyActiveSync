@@ -149,6 +149,11 @@ class GetItemEstimate:
                 "4": ( "The specified synchronization key was invalid.", "Malformed or mismatched synchronization key, or the synchronization state is corrupted on the server.", "Issue a successful Sync command prior to issuing the GetItemEstimate command again. If the error is repeated, issue a Sync command with an SyncKey element value of zero (0).", "Global" )
                 }
 
+class ItemOperations:
+    class StoreTypes:
+        DocumentLibrary = "Document Library"
+        Mailbox = "Mailbox"
+
 class MoveItems:
     Status = {
                 "1": ( "Invalid source collection ID or invalid source Item ID.", "The source folder collection ID (CollectionId element value) is not recognized by the server, possibly because the source folder has been deleted. Or, the item with the Item ID (SrcMsgId element) has been previously moved out of the folder with the Folder ID (SrcFldId element).", "Issue a FolderSync command to get the new hierarchy. Then, issue a Sync command for the SrcFldId and reissue the MoveItems command request if the items are still present in this source collection.", "Item" ),

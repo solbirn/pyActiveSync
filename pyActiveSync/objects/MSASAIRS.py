@@ -42,6 +42,17 @@ class airsyncbase_BodyPart_status:
     Success =   1
     Too_long =  176
 
+class airsync_MIMESupport:
+    Never =     0
+    SMIMEOnly = 1
+    Always =    2
+
+class airsync_Class:
+    Email =     "Email"
+    Contacts =  "Contacts"
+    Calendar =  "Calendar"
+    Tasks =     "Tasks"
+
 class airsyncbase_Body(object):
     def __init__(self):#, type, estimated_data_size=None, truncated=None, data=None, part=None, preview=None):
         self.airsyncbase_Type = None #type                                #Required. Integer. Max 1. See "MSASAIRS.Type" enum. 

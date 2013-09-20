@@ -37,6 +37,8 @@ from client.FolderDelete import FolderDelete
 from client.Ping import Ping
 from client.MoveItems import MoveItems
 from client.Provision import Provision
+from client.ItemOperations import ItemOperations
+from client.ValidateCert import ValidateCert
 
 from objects.MSASCMD import FolderHierarchy, as_status
 
@@ -46,7 +48,7 @@ pyver = sys.version_info
 
 storage.create_db_if_none()
 conn, curs = storage.get_conn_curs()
-device_info = {"Model":"%d.%d.%d" % (pyver[0], pyver[1], pyver[2]), "IMEI":"12345", "FriendlyName":"My pyAS Client", "OS":"Python", "OSLanguage":"en-us", "PhoneNumber": "NA", "MobileOperator":"NA", "UserAgent": "pyAS"}
+device_info = {"Model":"%d.%d.%d" % (pyver[0], pyver[1], pyver[2]), "IMEI":"123456", "FriendlyName":"My pyAS Client", "OS":"Python", "OSLanguage":"en-us", "PhoneNumber": "NA", "MobileOperator":"NA", "UserAgent": "pyAS"}
 
 #create wbxml_parser test
 parser = wbxml_parser(as_code_pages.build_as_code_pages())
@@ -101,11 +103,19 @@ if int(status) > 138 and int(status) < 145:
     changes, synckey, status = FolderSync.parse(foldersync_xmldoc_res)
     if int(status) > 138 and int(status) < 145:
         print as_status("FolderSync", status)
-        raise Exception("Unsolvable provisoning error: %s. Cannot continue." % status)
+        raise Exception("Unresolvable provisoning error: %s. Cannot continue..." % status)
 if len(changes) > 0:
     storage.update_folderhierarchy(changes)
     storage.update_synckey(synckey, "0", curs)
     conn.commit()
+
+#ItemOperations
+itemoperations_params = [{"Name":"Fetch","Store":"Mailbox", "FileReference":"%34%67%32"}]
+itemoperations_xmldoc_req = ItemOperations.build(itemoperations_params)
+print "\r\nItemOperations Request:\r\n", itemoperations_xmldoc_req
+#itemoperations_xmldoc_res, attachment_file = as_conn.fetch_multipart(itemoperations_xmldoc_req, "myattachment1.txt")
+#itemoperations_xmldoc_res_parsed = ItemOperations.parse(itemoperations_xmldoc_res)
+#print itemoperations_xmldoc_res
 
 #FolderCreate
 parent_folder = storage.get_folderhierarchy_folder_by_name("Inbox", curs)
