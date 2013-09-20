@@ -2,7 +2,7 @@ About
 ------
 pyActiveSync is (or rather will be) a pure python library for the Microsoft ActiveSync protocol.
 
-The project is in the very beginning stages.
+The project is progressing.
 
 THIS IS NOT A GRANT OF PATENT RIGHTS
 -----------------------------
@@ -11,4 +11,4 @@ unencumbered by third-party patents.  Those intending to use this source code in
 software products are advised that implementations of this code, including in open source software
 or shareware, may require patent licenses from the relevant patent holders.
 
-Beware the ActiveSync protocol is patented at this time. You must have a license agreement with Microsoft in order to use implementations of this code. See the following link: http://www.microsoft.com/en-us/legal/intellectualproperty/IPLicensing/Programs/exchangeactivesyncprotocol.aspx
+Please not that the ActiveSync protocol is patented at this time. You must have a license agreement with Microsoft in order to use implementations of this code. See the following link: http://www.microsoft.com/en-us/legal/intellectualproperty/IPLicensing/Programs/exchangeactivesyncprotocol.aspx
