@@ -18,7 +18,6 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 class ResolveRecipients:
     """http://msdn.microsoft.com/en-us/library/gg650949(v=exchg.80).aspx"""
@@ -42,8 +41,7 @@ class ResolveRecipients:
         return resolverecipients_xmldoc_req
 
     @staticmethod
-    def parse(inwbxml):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "resolverecipients"
         root_tag = "ResolveRecipients"

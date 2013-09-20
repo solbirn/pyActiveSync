@@ -18,23 +18,21 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 class FolderDelete:
     """http://msdn.microsoft.com/en-us/library/ee201525(v=exchg.80).aspx"""
 
     @staticmethod
-    def build(server_id):
+    def build(synckey, server_id):
         folderdelete_xmldoc_req = wapxmltree()
         xmlrootnode = wapxmlnode("FolderDelete")
         folderdelete_xmldoc_req.set_root(xmlrootnode, "folderhierarchy")
-        xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, storage.get_synckey("0"))
+        xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, synckey)
         xmlserveridnode = wapxmlnode("ServerId", xmlrootnode, server_id)
         return folderdelete_xmldoc_req
 
     @staticmethod
-    def parse(inwapxml):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "folderhierarchy"
         root_tag = "FolderDelete"

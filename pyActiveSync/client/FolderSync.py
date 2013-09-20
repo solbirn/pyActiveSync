@@ -18,7 +18,6 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 from objects.MSASCMD import FolderHierarchy
 
@@ -26,16 +25,15 @@ class FolderSync:
     """http://msdn.microsoft.com/en-us/library/ee237648(v=exchg.80).aspx"""
 
     @staticmethod
-    def build():
+    def build(synckey):
         foldersync_xmldoc_req = wapxmltree()
         xmlrootnode = wapxmlnode("FolderSync")
         foldersync_xmldoc_req.set_root(xmlrootnode, "folderhierarchy")
-        xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, storage.get_synckey("0"))
+        xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, synckey)
         return foldersync_xmldoc_req
 
     @staticmethod
-    def parse(inwapxml):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "folderhierarchy"
         root_tag = "FolderSync"
@@ -60,12 +58,11 @@ class FolderSync:
 
         for element in folderhierarchy_foldersync_children:
             if element.tag is "Status":
-                folderhierarchy_foldersync_status = element
-                if folderhierarchy_foldersync_status.text != "1":
-                    raise Exception("FolderSync Exception: %s" % folderhierarchy_foldersync_status.text)
+                folderhierarchy_foldersync_status = element.text
+                if folderhierarchy_foldersync_status != "1":
+                    print "FolderSync Exception: %s" % folderhierarchy_foldersync_status
             elif element.tag == "SyncKey":
-                folderhierarchy_foldersync_synckey = element
-                storage.update_synckey(folderhierarchy_foldersync_synckey.text, "0")
+                folderhierarchy_foldersync_synckey = element.text
             elif element.tag == "Changes":
                 folderhierarchy_foldersync_changes = element.get_children()
                 folderhierarchy_foldersync_changes_count = int(folderhierarchy_foldersync_changes[0].text)
@@ -84,4 +81,4 @@ class FolderSync:
                             elif element.tag == "Type":
                                 new_change.Type = element.text
                         changes.append((folderhierarchy_foldersync_change_element.tag, new_change))
-        return changes
+        return (changes, folderhierarchy_foldersync_synckey, folderhierarchy_foldersync_status)

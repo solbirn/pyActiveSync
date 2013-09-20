@@ -18,7 +18,6 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 class Ping(object):
     """http://msdn.microsoft.com/en-us/library/gg675609(v=exchg.80).aspx"""
@@ -39,8 +38,7 @@ class Ping(object):
         return ping_xmldoc_req
 
     @staticmethod
-    def parse(inwapxml):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "ping"
         root_tag = "Ping"

@@ -18,25 +18,23 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 class FolderUpdate:
     """http://msdn.microsoft.com/en-us/library/ee160573(v=exchg.80).aspx"""
 
     @staticmethod
-    def build(server_id, parent_id, display_name):
+    def build(synckey, server_id, parent_id, display_name):
         folderupdate_xmldoc_req = wapxmltree()
         xmlrootnode = wapxmlnode("FolderUpdate")
         folderupdate_xmldoc_req.set_root(xmlrootnode, "folderhierarchy")
-        xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, storage.get_synckey("0"))
+        xmlsynckeynode = wapxmlnode("SyncKey", xmlrootnode, synckey)
         xmlserveridnode = wapxmlnode("ServerId", xmlrootnode, server_id)
         xmlparentidnode = wapxmlnode("ParentId", xmlrootnode, parent_id)
         xmldisplaynamenode = wapxmlnode("DisplayName", xmlrootnode, display_name)
         return folderupdate_xmldoc_req
 
     @staticmethod
-    def parse(inwapxml):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "folderhierarchy"
         root_tag = "FolderUpdate"

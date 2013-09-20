@@ -18,7 +18,6 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 class GetItemEstimate:
     class getitemestimate_response:
@@ -28,7 +27,7 @@ class GetItemEstimate:
             self.Estimate = None
 
     @staticmethod
-    def build(collection_ids):
+    def build(synckeys, collection_ids):
         getitemestimate_xmldoc_req = wapxmltree()
         xmlrootgetitemestimatenode = wapxmlnode("GetItemEstimate")
         getitemestimate_xmldoc_req.set_root(xmlrootgetitemestimatenode, "getitemestimate")
@@ -37,7 +36,10 @@ class GetItemEstimate:
 
         for collection_id in collection_ids:
             xml_Collection_node = wapxmlnode("Collection", xmlcollectionsnode)
-            xml_gie_airsyncSyncKey_node = wapxmlnode("airsync:SyncKey", xml_Collection_node, storage.get_synckey(collection_id))
+            try:
+                xml_gie_airsyncSyncKey_node = wapxmlnode("airsync:SyncKey", xml_Collection_node, synckeys[collection_id])
+            except KeyError:
+                xml_gie_airsyncSyncKey_node = wapxmlnode("airsync:SyncKey", xml_Collection_node, "0") 
             xml_gie_CollectionId_node = wapxmlnode("CollectionId", xml_Collection_node, collection_id)#?
             #xml_gie_ConverationMode_node = wapxmlnode("airsync:ConversationMode", xml_Collection_node, "0")#?
             xml_gie_airsyncOptions_node = wapxmlnode("airsync:Options", xml_Collection_node)
@@ -47,8 +49,7 @@ class GetItemEstimate:
         return getitemestimate_xmldoc_req
         
     @staticmethod
-    def parse(inwapxml=None):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "getitemestimate"
         root_tag = "GetItemEstimate"

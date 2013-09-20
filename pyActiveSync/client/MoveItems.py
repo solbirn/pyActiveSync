@@ -18,7 +18,6 @@
 ########################################################################
 
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.storage import storage
 
 class MoveItems(object):
     """http://msdn.microsoft.com/en-us/library/gg675499(v=exchg.80).aspx"""
@@ -39,8 +38,7 @@ class MoveItems(object):
         return moveitems_xmldoc_req
 
     @staticmethod
-    def parse(inwapxml):
-        wapxml = inwapxml
+    def parse(wapxml):
 
         namespace = "move"
         root_tag = "MoveItems"
