@@ -21,6 +21,36 @@ import sqlite3
 
 class storage:
     @staticmethod
+    def set_keyvalue(key, value, path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        curs.execute("INSERT INTO KeyValue VALUES ('%s', '%s')" % (key, value))
+        conn.commit()
+        conn.close()
+    
+    @staticmethod
+    def update_keyvalue(key, value, path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        sql = "UPDATE KeyValue SET Value='%s' WHERE Key='%s'" % (value.replace("'","''"), key)
+        curs.execute(sql)
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def get_keyvalue(key, path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        curs.execute("SELECT Value FROM KeyValue WHERE Key='%s'" % key)
+        try:
+            value = curs.fetchone()[0]
+            conn.close()
+            return value
+        except:
+            conn.close()
+            return None
+
+    @staticmethod
     def create_db(path=None):
         if path:
             if path != "pyas.asdb":
@@ -74,6 +104,8 @@ class storage:
                     ]
         for index in indicies:
             curs.execute(index)
+        storage.set_keyvalue("X-MS-PolicyKey", "0")
+        storage.set_keyvalue("EASPolicies", "")
         conn.commit()
 
         conn.close()
@@ -250,3 +282,16 @@ class storage:
             name_id_dict.update({ id_name[0] : id_name[1] })
         conn.close()
         return name_id_dict
+
+    @staticmethod
+    def get_synckeys_dict(curs, path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        curs.execute("SELECT * FROM SyncKeys")
+        synckeys_rows = curs.fetchall()
+        synckeys_dict = {}
+        if synckeys_rows:
+            if len(synckeys_rows) > 0:
+                for synckey_row in synckeys_rows:
+                    synckeys_dict.update({synckey_row[1]:synckey_row[0]})
+        return synckeys_dict
