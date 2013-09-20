@@ -24,16 +24,22 @@ class ValidateCert:
     """http://msdn.microsoft.com/en-us/library/gg675590(v=exchg.80).aspx"""
 
     @staticmethod
-    def build(certificate, certificate_chain_list=[], check_crl = True):
+    def build(certificate, certificate_chain_list=[], pre_encoded = False, check_crl = True):
         validatecert_xmldoc_req = wapxmltree()
         xmlrootnode = wapxmlnode("ValidateCert")
         validatecert_xmldoc_req.set_root(xmlrootnode, "validatecert")
         if len(certificate_chain_list) > 0:
             xmlcertchainnode = wapxmlnode("CertificateChain", xmlrootnode)
             for cert in certificate_chain_list:
-                wapxmlnode("Certificate", xmlcertchainnode, base64.b64encode(cert))
+                if pre_encoded:
+                    wapxmlnode("Certificate", xmlcertchainnode, cert)
+                else:
+                    wapxmlnode("Certificate", xmlcertchainnode, base64.b64encode(cert))
         xmlcertsnode = wapxmlnode("Certificates", xmlrootnode)
-        xmlcertnode = wapxmlnode("Certificate", xmlcertsnode, base64.b64encode(certificate))
+        if pre_encoded:
+            xmlcertnode = wapxmlnode("Certificate", xmlcertsnode, certificate)
+        else:
+            xmlcertnode = wapxmlnode("Certificate", xmlcertsnode, base64.b64encode(certificate))
         if check_crl:
             xmlcertsnode = wapxmlnode("CheckCRL", xmlrootnode, "1")
         return validatecert_xmldoc_req
