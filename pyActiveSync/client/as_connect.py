@@ -29,10 +29,12 @@ class as_connect(object):
         self.server =server
         self.port = port
         self.ssl = ssl
+        self.policykey = 0
         self.headers = {
                         "Content-Type": "application/vnd.ms-sync.wbxml",
                         "User-Agent" : self.USER_AGENT,
-                        "MS-ASProtocolVersion" : "14.1"
+                        "MS-ASProtocolVersion" : "14.1",
+                        "Accept-Language" : "en_us"
                         }
         return
 
@@ -63,3 +65,10 @@ class as_connect(object):
             print res.status, res.reason
             for header in res.getheaders():
                 print header[0]+":",header[1]
+
+    def get_policykey(self):
+        return self.policykey
+
+    def set_policykey(self, policykey):
+        self.policykey = policykey
+        self.headers.update({ "X-MS-PolicyKey" : self.policykey })
