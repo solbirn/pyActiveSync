@@ -154,6 +154,12 @@ class ItemOperations:
         DocumentLibrary = "Document Library"
         Mailbox = "Mailbox"
 
+class MeetingResponse:
+    class UserResponse:
+        Accepted =  1
+        Tentitive = 2
+        Declined =  3
+
 class MoveItems:
     Status = {
                 "1": ( "Invalid source collection ID or invalid source Item ID.", "The source folder collection ID (CollectionId element value) is not recognized by the server, possibly because the source folder has been deleted. Or, the item with the Item ID (SrcMsgId element) has been previously moved out of the folder with the Folder ID (SrcFldId element).", "Issue a FolderSync command to get the new hierarchy. Then, issue a Sync command for the SrcFldId and reissue the MoveItems command request if the items are still present in this source collection.", "Item" ),
