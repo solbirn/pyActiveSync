@@ -24,7 +24,6 @@ import sys
 from utils.as_code_pages import as_code_pages
 from utils.wbxml import wbxml_parser
 from utils.wapxml import wapxmltree, wapxmlnode
-from client.as_connect import as_connect
 from client.storage import storage
 
 from client.FolderSync import FolderSync
@@ -40,6 +39,7 @@ from client.Provision import Provision
 from client.ItemOperations import ItemOperations
 from client.ValidateCert import ValidateCert
 
+from objects.MSASHTTP import ASHTTPConnector
 from objects.MSASCMD import FolderHierarchy, as_status
 
 from proto_creds import * #create a file proto_creds.py with vars: as_server, as_user, as_pass
@@ -54,7 +54,7 @@ device_info = {"Model":"%d.%d.%d" % (pyver[0], pyver[1], pyver[2]), "IMEI":"1234
 parser = wbxml_parser(as_code_pages.build_as_code_pages())
 
 #create activesync connector
-as_conn = as_connect(as_server) #e.g. "as.myserver.com"
+as_conn = ASHTTPConnector(as_server) #e.g. "as.myserver.com"
 as_conn.set_credential(as_user, as_pass)
 as_conn.options()
 policykey = storage.get_keyvalue("X-MS-PolicyKey")
