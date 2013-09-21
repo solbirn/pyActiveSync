@@ -23,6 +23,7 @@ class as_connect(object):
     """ActiveSync connector object"""
     USER_AGENT = "Python"
     POST_URL_TEMPLATE = "/Microsoft-Server-ActiveSync?Cmd=%s&User=%s&DeviceId=123456&DeviceType=Python"
+    POST_GETATTACHMENT_URL_TEMPLATE = "/Microsoft-Server-ActiveSync?Cmd=%s&AttachmentName=%s&User=%s&DeviceId=123456&DeviceType=Python"
 
     def __init__(self, server, port=443, ssl=True):
         
@@ -73,7 +74,18 @@ class as_connect(object):
             return wbxml, filename
         else:
             raise TypeError("Client requested MultiPart response, but server responsed with inline.")
-    
+
+    def get_attachment(self, attachment_name): #attachment_name = DisplayName of attachment from an MSASAIRS.Attachment object
+        url = self.POST_GETATTACHMENT_URL_TEMPLATE  % ("GetAttachment", attachment_name, self.username)
+        conn = httplib.HTTPSConnection(self.server, self.port)
+        conn.request("POST",url, body, self.headers)
+        res = conn.getresponse()
+        try:
+            content_type = res.getheader("Content-Type")
+        except:
+            content_type = "text/plain"
+        return res.read(), res.status, content_type
+
     def options(self):
         conn = httplib.HTTPSConnection(self.server, self.port)
         conn.request("OPTIONS","/Microsoft-Server-ActiveSync", None, self.headers)
