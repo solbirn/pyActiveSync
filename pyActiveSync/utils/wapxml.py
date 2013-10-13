@@ -78,10 +78,10 @@ class wapxmlnode(object):
     def get_children(self):
         return self._children
     def __repr__(self, tabs="  "):
-        if self.text or (len(self._children)>0):
+        if (self.text != None) or (len(self._children)>0):
             inner_text = ""
-            if self.text:
-                inner_text+=self.text
+            if self.text != None:
+                inner_text+=str(self.text)
             if self.has_children():
                 for child in self._children:
                     inner_text+=child.__repr__(tabs+"  ")
