@@ -709,7 +709,9 @@ class as_code_pages:
         code_pages[24].add(0x17, "ContentOwner")
         code_pages[24].add(0x18, "RemoveRightsManagementDistribution")
 
-        return code_pages
+        cp_shorthand = {"rm":"RightsManagement"}
+
+        return code_pages, cp_shorthand
 
 
 
