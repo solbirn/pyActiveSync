@@ -287,6 +287,25 @@ def as_status(cmd, status):
                     info = CommonStatuses[status]
                 except KeyError:
                     info = "Status %s for command %s not found" % (cmd, status)
+    elif cmd == "FolderCreate":
+        try:
+            info = FolderHierarchy.Status[status]
+        except KeyError:
+            try:
+                info = FolderHierarchy.FolderCreate.Status[status]
+            except KeyError:
+                try:
+                    info = CommonStatuses[status]
+                except KeyError:
+                    info = "Status %s for command %s not found" % (cmd, status)
+    elif cmd == "GetItemEstimate":
+        try:
+            info = GetItemEstimate.Status[status]
+        except KeyError:
+            try:
+                info = CommonStatuses[status]
+            except KeyError:
+                info = "Status %s for command %s not found" % (cmd, status)
     if info:
         if isinstance(info, tuple):
             return_str = "\r\n%s status number: %s\r\n-----------------" % (cmd, status)
