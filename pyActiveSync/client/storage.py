@@ -189,7 +189,7 @@ class storage:
                                                 '%s', '%s', %s, '%s', '%s')"""  % (
                                                            email.server_id, email.email_To.replace("'","''"), repr(email.email_Cc).replace("'","''"), email.email_From.replace("'","''"), email.email_Subject.replace("'","''"),
                                                            email.email_ReplyTo.replace("'","''"), email.email_DateReceived, repr(email.email_DisplayTo), email.email_ThreadTopic.replace("'","''"), email.email_Importance,
-                                                           email.email_Read, repr(email.airsyncbase_Attachments), repr(email.airsyncbase_Body), email.email_MessageClass, email.email_InternetCPID,
+                                                           email.email_Read, repr(email.airsyncbase_Attachments), repr(email.airsyncbase_Body).replace("'",""), email.email_MessageClass, email.email_InternetCPID,
                                                            repr(email.email_Flag), email.airsyncbase_NativeBodyType, email.email_ContentClass, email.email2_UmCalledId, email.email2_UmUserNotes,
                                                            email.email2_ConversationId, email.email2_ConversationIndex, email.email2_LastVerbExecuted, email.email2_LastVerbExecutedTime, email.email2_ReceivedAsBcc,
                                                            email.email2_Sender, repr(email.email_Categories), repr(email.airsyncbase_BodyPart), email.email2_AccountId, repr(email.rm_RightsManagementLicense))
@@ -235,6 +235,12 @@ class storage:
 
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def get_emails_by_collectionid(collectionid, curs):
+        sql = "SELECT * from MSASEMAIL WHERE ServerId like '%s:%%'" % collectionid
+        curs.execute(sql)
+        return curs.fetchall()
 
     @staticmethod
     def update_synckey(synckey, collectionid, curs=None):
