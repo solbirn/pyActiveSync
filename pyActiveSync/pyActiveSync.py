@@ -38,9 +38,13 @@ from client.MoveItems import MoveItems
 from client.Provision import Provision
 from client.ItemOperations import ItemOperations
 from client.ValidateCert import ValidateCert
+from client.SendMail import SendMail
+from client.SmartForward import SmartForward
+from client.SmartReply import SmartReply
 
 from objects.MSASHTTP import ASHTTPConnector
 from objects.MSASCMD import FolderHierarchy, as_status
+from objects.MSASAIRS import airsync_FilterType, airsync_Conflict, airsync_MIMETruncation, airsync_MIMESupport, airsync_Class, airsyncbase_Type
 
 from proto_creds import * #create a file proto_creds.py with vars: as_server, as_user, as_pass
 
@@ -51,7 +55,8 @@ conn, curs = storage.get_conn_curs()
 device_info = {"Model":"%d.%d.%d" % (pyver[0], pyver[1], pyver[2]), "IMEI":"123456", "FriendlyName":"My pyAS Client", "OS":"Python", "OSLanguage":"en-us", "PhoneNumber": "NA", "MobileOperator":"NA", "UserAgent": "pyAS"}
 
 #create wbxml_parser test
-parser = wbxml_parser(as_code_pages.build_as_code_pages())
+cp, cp_sh = as_code_pages.build_as_code_pages()
+parser = wbxml_parser(cp, cp_sh)
 
 #create activesync connector
 as_conn = ASHTTPConnector(as_server) #e.g. "as.myserver.com"
@@ -128,6 +133,8 @@ if foldercreate_res_parsed[0] == "1":
     storage.insert_folderhierarchy_change(new_folder, curs)
     storage.update_synckey(foldercreate_res_parsed[1], "0", curs)
     conn.commit()
+else:
+    print as_status("FolderCreate", foldercreate_res_parsed[0])
 
 #FolderUpdate
 old_folder_name = "TestFolder1"
@@ -161,9 +168,73 @@ if folderdelete_res_parsed[0] == "1":
 resolverecipients_xmldoc_req = ResolveRecipients.build("zebra")
 resolverecipients_xmldoc_res = as_request("ResolveRecipients", resolverecipients_xmldoc_req)
 
+collection_sync_params = {"5":
+                            {#"Supported":"",
+                             #"DeletesAsMoves":"1",
+                             #"GetChanges":"1",
+                             "WindowSize":"512",
+                             "Options": {
+                                         #"FilterType": airsync_FilterType.NoFilter,
+                                         "Conflict": airsync_Conflict.ServerReplacesClient,
+                                         "MIMETruncation":airsync_MIMETruncation.TruncateNone,
+                                         "MIMESupport":airsync_MIMESupport.SMIMEOnly,
+                                         "Class":airsync_Class.Email,
+                                         #"MaxItems":"300", #Recipient information cache sync requests only. Max number of frequently used contacts.
+                                         "airsyncbase_BodyPreference": [{
+                                                            "Type": airsyncbase_Type.HTML,
+                                                            "TruncationSize": "1000000000", # Max 4,294,967,295
+                                                            "AllOrNone": "1", # I.e. Do not return any body, if body size > tuncation size
+                                                            #"Preview": "255", # Size of message preview to return 0-255
+                                                            },
+                                                            {
+                                                            "Type": airsyncbase_Type.MIME,
+                                                            "TruncationSize": "3000000000", # Max 4,294,967,295
+                                                            "AllOrNone": "1", # I.e. Do not return any body, if body size > tuncation size
+                                                            #"Preview": "0", # Size of message preview to return 0-255
+                                                            }
+                                                            ],
+                                         #"airsyncbase_BodyPartPreference":"",
+                                         #"rm_RightsManagementSupport":"1"
+                                         },
+                             #"ConversationMode":"1",
+                             #"Commands": {"Add":None, "Delete":None, "Change":None, "Fetch":None}
+                            },
+                          "10":
+                            {#"Supported":"",
+                             #"DeletesAsMoves":"1",
+                             #"GetChanges":"1",
+                             "WindowSize":"512",
+                             "Options": {
+                                         #"FilterType": airsync_FilterType.NoFilter,
+                                         "Conflict": airsync_Conflict.ServerReplacesClient,
+                                         "MIMETruncation":airsync_MIMETruncation.TruncateNone,
+                                         "MIMESupport":airsync_MIMESupport.SMIMEOnly,
+                                         "Class":airsync_Class.Email,
+                                         #"MaxItems":"300", #Recipient information cache sync requests only. Max number of frequently used contacts.
+                                         "airsyncbase_BodyPreference": [{
+                                                            "Type": airsyncbase_Type.HTML,
+                                                            "TruncationSize": "1000000000", # Max 4,294,967,295
+                                                            "AllOrNone": "1", # I.e. Do not return any body, if body size > tuncation size
+                                                            #"Preview": "255", # Size of message preview to return 0-255
+                                                            },
+                                                            {
+                                                            "Type": airsyncbase_Type.MIME,
+                                                            "TruncationSize": "3000000000", # Max 4,294,967,295
+                                                            "AllOrNone": "1", # I.e. Do not return any body, if body size > tuncation size
+                                                            #"Preview": "0", # Size of message preview to return 0-255
+                                                            }
+                                                            ],
+                                         #"airsyncbase_BodyPartPreference":"",
+                                         #"rm_RightsManagementSupport":"1"
+                                         },
+                             #"ConversationMode":"1",
+                             #"Commands": {"Add":None, "Delete":None, "Change":None, "Fetch":None}
+                            }
+                       }
+
 #Sync function
-def do_sync(collection_ids):
-    as_sync_xmldoc_req = Sync.build(storage.get_synckeys_dict(curs), collection_ids)
+def do_sync(collections):
+    as_sync_xmldoc_req = Sync.build(storage.get_synckeys_dict(curs), collections)
     print "\r\nRequest:"
     print as_sync_xmldoc_req
     res = as_conn.post("Sync", parser.encode(as_sync_xmldoc_req))
@@ -186,19 +257,23 @@ def do_getitemestimates(collection_ids):
 
 def getitemestimate_check_prime_collections(getitemestimate_responses):
     has_synckey = []
-    needs_synckey = []
+    needs_synckey = {}
     for response in getitemestimate_responses:
         if response.Status == "1":
             has_synckey.append(response.CollectionId)
-        if response.Status == "2":
+        elif response.Status == "2":
             print "GetItemEstimate Status: Unknown CollectionId (%s) specified. Removing." % response.CollectionId
-        if response.Status == "3":
+        elif response.Status == "3":
             print "GetItemEstimate Status: Sync needs to be primed."
-            needs_synckey.append(response.CollectionId)
+            needs_synckey.update({response.CollectionId:{}})
             has_synckey.append(response.CollectionId) #technically *will* have synckey after do_sync() need end of function
+        else:
+            print as_status("GetItemEstimate", response.Status)
     if len(needs_synckey) > 0:
         do_sync(needs_synckey)
     return has_synckey, needs_synckey
+
+
 
 #Ping (push), GetItemsEstimate and Sync process test
 #Ping
@@ -213,12 +288,12 @@ if ping_res[0] == "2": #2=New changes available
     if (len(has_synckey) < ping_res[3]) or (len(just_got_synckey) > 0): #grab new estimates, since they changed
         getitemestimate_responses = do_getitemestimates(has_synckey)
 
-    collections_to_sync = [] 
+    collections_to_sync = {}
 
     for response in getitemestimate_responses:
         if response.Status == "1":
             if int(response.Estimate) > 0:
-                collections_to_sync.append(response.CollectionId)
+                collections_to_sync.update({response.CollectionId:collection_sync_params[response.CollectionId]})
         else:
             print "GetItemEstimate Status (error): %s, CollectionId: %s." % (response.Status, response.CollectionId)
 

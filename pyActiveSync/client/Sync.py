@@ -33,42 +33,39 @@ class Sync:
             self.Responses = None
 
     @staticmethod
-    def build(synckeys, collection_ids):
+    def build(synckeys, collections):
         as_sync_xmldoc_req = wapxmltree()
         xml_as_sync_rootnode = wapxmlnode("Sync")
         as_sync_xmldoc_req.set_root(xml_as_sync_rootnode, "airsync")
 
         xml_as_collections_node = wapxmlnode("Collections", xml_as_sync_rootnode)
 
-        for collection_id in collection_ids:
+        for collection_id in collections.keys():
             xml_as_Collection_node = wapxmlnode("Collection", xml_as_collections_node)  #http://msdn.microsoft.com/en-us/library/gg650891(v=exchg.80).aspx
             try:
                 xml_as_SyncKey_node = wapxmlnode("SyncKey", xml_as_Collection_node, synckeys[collection_id])    #http://msdn.microsoft.com/en-us/library/gg663426(v=exchg.80).aspx
             except KeyError:
-                xml_as_SyncKey_node = wapxmlnode("SyncKey", xml_as_Collection_node, "0") 
-            #xml_as_Supported_node = wapxmlnode("Supported", xml_as_Collection_1_node, "") #http://msdn.microsoft.com/en-us/library/gg650908(v=exchg.80).aspx
+                xml_as_SyncKey_node = wapxmlnode("SyncKey", xml_as_Collection_node, "0")
+                
             xml_as_CollectionId_node = wapxmlnode("CollectionId", xml_as_Collection_node, collection_id) #http://msdn.microsoft.com/en-us/library/gg650886(v=exchg.80).aspx
-            #xml_as_DeleteAsMoves_node = wapxmlnode("DeleteAsMoves", xml_as_Collection_1_node, "1") #Default is "True" #OPT #http://msdn.microsoft.com/en-us/library/gg675480(v=exchg.80).aspx
-            #xml_as_GetChanges_node = wapxmlnode("GetChanges", xml_as_Collection_1_node, "0") #MUST be False or absent when SyncKey is 0. #OPT http://msdn.microsoft.com/en-us/library/gg675447(v=exchg.80).aspx
-            xml_as_WindowSize_node = wapxmlnode("WindowSize", xml_as_Collection_node, "512") #OPT Specify how many change you want at a time, up to 512. #http://msdn.microsoft.com/en-us/library/gg650865(v=exchg.80).aspx
 
-            xml_as_Options_node = wapxmlnode("Options", xml_as_Collection_node)
-            xml_as_Options_BodyPreference_node = wapxmlnode("airsyncbase:BodyPreference", xml_as_Options_node)
-            xml_as_Options_BodyPreference_Type_node = wapxmlnode("airsyncbase:Type", xml_as_Options_BodyPreference_node)
-            xml_as_Options_BodyPreference_Type_node.text = "1"
-            xml_as_Options_BodyPreference_TruncationSize_node = wapxmlnode("airsyncbase:TruncationSize", xml_as_Options_BodyPreference_node)
-            xml_as_Options_BodyPreference_TruncationSize_node.text = "10000000"
-
-            #xml_as_ConverationMode_node = wapxmlnode("ConversationMode", xml_as_Collection_1_node, "0") #OPT #will implement later #http://msdn.microsoft.com/en-us/library/gg672034(v=exchg.80).aspx
-
-            #xml_as_Commands_collection_node = wapxmlnode("Commands", xml_as_Collection_1_node)
-            #xml_as_Commands_Add_node = wapxmlnode("Add", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675487(v=exchg.80).aspx
-            #xml_as_Commands_Delete_node = wapxmlnode("Delete", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg663450(v=exchg.80).aspx
-            #xml_as_Commands_Change_node = wapxmlnode("Change", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675544(v=exchg.80).aspx
-            #xml_as_Commands_Fetch_node = wapxmlnode("Fetch", xml_as_Commands_collection_node) #http://msdn.microsoft.com/en-us/library/gg675490(v=exchg.80).aspx
-
-            #xml_as_collections_node = wapxmlnode("Collections", xml_as_sync_rootnode)
-
+            for parameter in collections[collection_id].keys():
+                if parameter == "Options":
+                    xml_as_Options_node = wapxmlnode(parameter, xml_as_Collection_node)
+                    for option_parameter in collections[collection_id][parameter].keys():
+                        if option_parameter.startswith("airsync"):
+                            for airsyncpref_node in collections[collection_id][parameter][option_parameter]:
+                                xml_as_Options_airsyncpref_node = wapxmlnode(option_parameter.replace("_",":"), xml_as_Options_node)
+                                wapxmlnode("airsyncbase:Type", xml_as_Options_airsyncpref_node, airsyncpref_node["Type"])
+                                del airsyncpref_node["Type"]
+                                for airsyncpref_parameter in airsyncpref_node.keys():
+                                    wapxmlnode("airsyncbase:%s" % airsyncpref_parameter, xml_as_Options_airsyncpref_node, airsyncpref_node[airsyncpref_parameter])
+                        elif option_parameter.startswith("rm"):
+                            wapxmlnode(option_parameter.replace("_",":"), xml_as_Options_node, collections[collection_id][parameter][option_parameter])
+                        else:
+                            wapxmlnode(option_parameter, xml_as_Options_node, collections[collection_id][parameter][option_parameter])
+                else:
+                    wapxmlnode(parameter, xml_as_Collection_node, collections[collection_id][parameter])
         return as_sync_xmldoc_req
 
     @staticmethod
