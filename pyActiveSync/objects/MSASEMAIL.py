@@ -185,7 +185,7 @@ class email_Flag(object):                   #http://msdn.microsoft.com/en-us/lib
         self.email_flag_Status = email_Flag_status.Active
         self.email_FlagType = ""            #Optional. String. A string the 'explains' the flagging, such as "flag for follow up".
         self.tasks_DateCompleted = None     #Optional. dateTime. If set, email_CompleteTime is also required.
-        self.email_CompleteTime = None      #Require if complete. dataTime.
+        self.email_CompleteTime = None      #Require if complete. dateTime.
         self.tasks_StartDate = None         #Optional. dateTime. If set, the other tasks_*Date elements must also be set.
         self.tasks_DueDate = None           #Optional. dateTime. If set, the other tasks_*Date elements must also be set.
         self.tasks_UtcStartDate = None      #Optional. dateTime. If set, the other tasks_*Date elements must also be set.
@@ -223,6 +223,12 @@ class email_Flag(object):                   #http://msdn.microsoft.com/en-us/lib
                 self.tasks_OrdinalDate = element.text
             elif element.tag == "tasks:SubOrdinalDate":
                 self.tasks_SubOrdinalDate = element.text
+    def marshal(self):
+        import base64
+        return base64.b64encode("%s//%s//%s//%s//%s//%s//%s//%s//%s//%s//%s//%s//%s" % (self.tasks_Subject, str(self.email_flag_Status), self.email_FlagType, self.tasks_DateCompleted, self.email_CompleteTime, self.tasks_StartDate,
+                                                                                        self.tasks_DueDate, self.tasks_UtcStartDate, self.tasks_UtcDueDate, self.tasks_ReminderSet, self.tasks_ReminderTime, self.tasks_OrdinalDate, self.tasks_SubOrdinalDate))
+    def __repr__(self):
+        return self.marshal()
 
 #class email_Category(object):
 #    def __init__(self, category):
