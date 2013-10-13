@@ -50,11 +50,12 @@ class wbxml_parser(object):
         OPAQUE      = 0xC3
         LITERAL_AC  = 0xC4 #Not used by MS-ASWBXML
 
-    def __init__(self, code_pages):
+    def __init__(self, code_pages, cp_shorthand={}):
         self.wapxml = None
         self.wbxml = None
         self.pointer = 0
         self.code_pages = code_pages
+        self.cp_shorthand = cp_shorthand
         return
 
     def encode(self, inwapxml=None):
@@ -212,9 +213,15 @@ class wbxml_parser(object):
         for cp_index, code_page in self.code_pages.items():
             if code_page.xmlns == lc_inxmlns:
                 return cp_index
+        if inxmlns_or_namespace in self.cp_shorthand.keys():
+            lc_inxmlns = self.cp_shorthand[inxmlns_or_namespace].lower()
+            for cp_index, code_page in self.code_pages.items():
+                if code_page.xmlns == lc_inxmlns:
+                    return cp_index
         raise IndexError("No such code page exists in current object")
 
     def encode_string(self, string):
+        string = str(string)
         retarray = bytearray(string, "utf-8")
         retarray.append("\x00")
         return retarray
