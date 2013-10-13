@@ -52,6 +52,34 @@ class airsync_Class:
     Contacts =  "Contacts"
     Calendar =  "Calendar"
     Tasks =     "Tasks"
+    Notes =     "Notes"
+    SMS =       "SMS"
+
+class airsync_FilterType:  #  Email | Calendar | Tasks
+    NoFilter =          0  #    Y   |    Y     |   Y
+    OneDay =            1  #    Y   |    N     |   N
+    ThreeDays =         2  #    Y   |    N     |   N
+    OneWeek =           3  #    Y   |    N     |   N
+    TwoWeeks =          4  #    Y   |    Y     |   N
+    OneMonth =          5  #    Y   |    Y     |   N
+    ThreeMonths =       6  #    N   |    Y     |   N
+    SixMonths =         7  #    N   |    Y     |   N
+    IncompleteTasks =   8  #    N   |    N     |   Y
+
+class airsync_Conflict:
+    ClientReplacesServer = 0
+    ServerReplacesClient = 1
+
+class airsync_MIMETruncation:
+    TruncateAll =       0
+    Over4096chars =     1
+    Over5120chars =     2
+    Over7168chars =     3
+    Over10240chars =    4
+    Over20480chars =    5
+    Over51200chars =    6
+    Over102400chars =   7
+    TruncateNone =      8
 
 class airsyncbase_Body(object):
     def __init__(self):#, type, estimated_data_size=None, truncated=None, data=None, part=None, preview=None):
@@ -76,7 +104,11 @@ class airsyncbase_Body(object):
                 self.airsyncbase_Part = element.text
             elif element.tag == "airsyncbase:Preview":
                 self.airsyncbase_Preview = element.text
-
+    def marshal(self):
+        import base64
+        return "%s//%s//%s//%s//%s//%s" % (repr(self.airsyncbase_Type), repr(self.airsyncbase_EstimatedDataSize), repr(self.airsyncbase_Truncated), base64.b64encode(self.airsyncbase_Data), repr(self.airsyncbase_Part), repr(self.airsyncbase_Preview))
+    def __repr__(self):
+        return self.marshal()
 
 class airsyncbase_BodyPart(object):
     def __init__(self):
@@ -137,6 +169,11 @@ class airsyncbase_Attachment(object): #Repsonse-only object.
                 self.email2_UmAttDuration = element.text
             elif element.tag == "email2:UmAttOrder":
                 self.email2_UmAttOrder = element.text
+    def marshal(self):
+        import base64
+        return base64.b64encode("%s//%s//%s//%s//%s//%s//%s//%s//%s" % (repr(self.airsyncbase_DisplayName), repr(self.airsyncbase_FileReference), repr(self.airsyncbase_Method), repr(self.airsyncbase_EstimatedDataSize), repr(self.airsyncbase_ContentId),repr(self.airsyncbase_ContentLocation), repr(self.airsyncbase_IsInline), repr(self.email2_UmAttDuration),repr(self.email2_UmAttOrder)))
+    def __repr__(self):
+        return self.marshal()
 
 class airsyncbase_Attachments:
     @staticmethod
