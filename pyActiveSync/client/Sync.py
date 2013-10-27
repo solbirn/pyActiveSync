@@ -69,13 +69,13 @@ class Sync:
         return as_sync_xmldoc_req
 
     @staticmethod
-    def parse_message(message):   
+    def parse_email_obj(message):   
         new_message = Email()
         new_message.parse(message)
         return new_message
 
     @staticmethod
-    def parse_update(message):
+    def parse_email_dict(message):
         return parse_email_to_dict(message)
 
     @staticmethod
@@ -130,12 +130,12 @@ class Sync:
                     commands_counter = 0
                     while commands_counter < airsyncbase_sync_commands_children_count:
                         if airsyncbase_sync_commands_children[commands_counter].tag == "Add":
-                            add_message = Sync.parse_message(airsyncbase_sync_commands_children[commands_counter])
+                            add_message = Sync.parse_email_dict(airsyncbase_sync_commands_children[commands_counter])
                             new_collection.Commands.append(("Add", add_message))
                         elif airsyncbase_sync_commands_children[commands_counter].tag == "Delete":
                             new_collection.Commands.append(("Delete", airsyncbase_sync_commands_children[commands_counter].get_children()[0].text))
                         elif airsyncbase_sync_commands_children[commands_counter].tag == "Change":
-                            update_message = Sync.parse_update(airsyncbase_sync_commands_children[commands_counter])
+                            update_message = Sync.parse_email_dict(airsyncbase_sync_commands_children[commands_counter])
                             new_collection.Commands.append(("Change", update_message))
                         elif airsyncbase_sync_commands_children[commands_counter].tag == "SoftDelete":
                             new_collection.Commands.append(("SoftDelete", airsyncbase_sync_commands_children[commands_counter].get_children()[0].text))

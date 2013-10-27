@@ -361,7 +361,7 @@ def parse_email_to_dict(data, type=1):
             elif element.tag == "email:DisplayTo":
                     email_dict.update({ "email_DisplayTo" : element.text })
             elif element.tag == "email:ThreadTopic":
-                    email_dict.update({ "email_TreadTopic" : element.text })
+                    email_dict.update({ "email_ThreadTopic" : element.text })
             elif element.tag == "email:Importance":
                     email_dict.update({ "email_Importance" : element.text })
             elif element.tag == "email:Read":
@@ -401,10 +401,10 @@ def parse_email_to_dict(data, type=1):
             elif element.tag == "email2:Sender":
                     email_dict.update({ "email2_Sender" : element.text })
             elif element.tag == "email:Categories":
-                    email_dict.update({ "Categories" : []})
+                    email_dict.update({ "email_Categories" : []})
                     categories_elements = element.get_children()
                     for category in categories_elements:
-                        email_dict["Categories"].append(category.text)
+                        email_dict["email_Categories"].append(category.text)
             elif element.tag == "airsyncbase:BodyPart":
                     email_dict.update({ "airsyncbase_Body" : airsyncbase_BodyPart.parse(element)})
             elif element.tag == "email2:AccountId":
