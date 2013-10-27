@@ -238,11 +238,11 @@ class storage:
 
             for command in collection.Commands:
                 if command[0] == "Add":
-                    storage.insert_email(command[1], curs)
+                    storage.insert_email(command[1][0], curs)
                 if command[0] == "Delete":
                     storage.delete_email(command[1], curs)
                 elif command[0] == "Change":
-                    storage.update_email(command[1], curs)
+                    storage.update_email(command[1][0], curs)
                 elif command[0] == "SoftDelete":
                     storage.delete_email(command[1], curs)
 
@@ -322,3 +322,18 @@ class storage:
         storage.update_keyvalue("MID", mid)
         return mid
 
+    @staticmethod
+    def get_serverid_to_type_dict(path="pyas.asdb"):
+        conn = sqlite3.connect(path)
+        curs = conn.cursor()
+        curs.execute("SELECT * FROM FolderHierarchy")
+        folders_rows = curs.fetchall()
+        conn.close()
+        folders_dict = {}
+        if folders_rows:
+            if len(folders_rows) > 0:
+                for folders_row in folders_rows:
+                    folders_dict.update({folders_row[0]:folders_row[3]})
+        else:
+            raise LookupError("No folders found in FolderHierarchy table. Did you run a FolderSync yet?")
+        return folders_dict

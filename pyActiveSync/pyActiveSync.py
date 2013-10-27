@@ -242,9 +242,10 @@ def do_sync(collections):
     if res == '':
         print "Nothing to Sync!"
     else:
+        collectionid_to_type_dict = storage.get_serverid_to_type_dict()
         as_sync_xmldoc_res = parser.decode(res)
         print as_sync_xmldoc_res
-        sync_res = Sync.parse(as_sync_xmldoc_res)
+        sync_res = Sync.parse(as_sync_xmldoc_res, collectionid_to_type_dict)
         storage.update_emails(sync_res)
 
 #GetItemsEstimate
@@ -283,7 +284,7 @@ my_email["To"] = as_user
 sendmail_xmldoc_req = SendMail.build(email_mid, my_email)
 res = as_conn.post("SendMail", parser.encode(sendmail_xmldoc_req))
 if res == '':
-    print "Message sent successfully!"
+    print "\r\nTest message sent successfully!"
 else:
     sendmail_xmldoc_res = parser.decode(res)
     sendmail_res = SendMail.parse(sendmail_xmldoc_res)

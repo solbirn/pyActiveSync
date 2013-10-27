@@ -19,7 +19,12 @@
 
 from utils.wapxml import wapxmltree, wapxmlnode
 
-from objects.MSASEMAIL import Email, parse_email_to_dict
+from objects.MSASCMD import FolderHierarchy
+from objects.MSASEMAIL import parse_email
+from objects.MSASCNTC import parse_contact
+from objects.MSASCAL import parse_calendar
+from objects.MSASTASK import parse_task
+from objects.MSASNOTE import parse_note
 
 class Sync:
     """'Sync' command builders and parsers"""
@@ -69,17 +74,49 @@ class Sync:
         return as_sync_xmldoc_req
 
     @staticmethod
-    def parse_email_obj(message):   
-        new_message = Email()
-        new_message.parse(message)
-        return new_message
+    def deepsearch_content_class(item):
+        elements = item.get_children()
+        for element in elements:
+            if (element.tag == "email:To") or (element.tag == "email:From"):
+                return "Email"
+            elif (element.tag == "contacts:FileAs") or (element.tag == "contacts:Email1Address"):
+                return "Contacts"
+            elif (element.tag == "calendar:Subject") or (element.tag == "calendar:UID"):
+                return "Calendar"
+            elif (element.tag == "tasks:Type"):
+                return "Tasks"
+            elif (element.tag == "notes:MessageClass"):
+                return "Notes"
 
     @staticmethod
-    def parse_email_dict(message):
-        return parse_email_to_dict(message)
+    def parse_item(item, collection_id, collectionid_to_type_dict = None):
+        if collectionid_to_type_dict:
+            try:
+                content_class = FolderHierarchy.FolderTypeToClass[collectionid_to_type_dict[collection_id]]
+            except:
+                content_class = Sync.deepsearch_content_class(item)
+        else:
+            content_class = Sync.deepsearch_content_class(item)
+        try:
+            if content_class == "Email":
+                return parse_email(item), content_class
+            elif content_class == "Contacts":
+                return parse_contact(item), content_class
+            elif content_class == "Calendar":
+                return parse_calendar(item), content_class
+            elif content_class == "Tasks":
+                return parse_task(item), content_class
+            elif content_class == "Notes":
+                return parse_note(item), content_class
+        except:
+            if collectionid_to_type_dict:
+                return parse_item(item, collection_id, None)
+            else:
+                pass
+        raise LookupError("Could not determine content class of item for parsing. \r\n------\r\nItem:\r\n%s" % repr(item))
 
     @staticmethod
-    def parse(wapxml):
+    def parse(wapxml, collectionid_to_type_dict = None):
 
         namespace = "airsync"
         root_tag = "Sync"
@@ -130,13 +167,13 @@ class Sync:
                     commands_counter = 0
                     while commands_counter < airsyncbase_sync_commands_children_count:
                         if airsyncbase_sync_commands_children[commands_counter].tag == "Add":
-                            add_message = Sync.parse_email_dict(airsyncbase_sync_commands_children[commands_counter])
-                            new_collection.Commands.append(("Add", add_message))
+                            add_item = Sync.parse_item(airsyncbase_sync_commands_children[commands_counter], new_collection.CollectionId, collectionid_to_type_dict)
+                            new_collection.Commands.append(("Add", add_item))
                         elif airsyncbase_sync_commands_children[commands_counter].tag == "Delete":
                             new_collection.Commands.append(("Delete", airsyncbase_sync_commands_children[commands_counter].get_children()[0].text))
                         elif airsyncbase_sync_commands_children[commands_counter].tag == "Change":
-                            update_message = Sync.parse_email_dict(airsyncbase_sync_commands_children[commands_counter])
-                            new_collection.Commands.append(("Change", update_message))
+                            update_item = Sync.parse_item(airsyncbase_sync_commands_children[commands_counter], new_collection.CollectionId, collectionid_to_type_dict)
+                            new_collection.Commands.append(("Change", update_item))
                         elif airsyncbase_sync_commands_children[commands_counter].tag == "SoftDelete":
                             new_collection.Commands.append(("SoftDelete", airsyncbase_sync_commands_children[commands_counter].get_children()[0].text))
                         commands_counter+=1
