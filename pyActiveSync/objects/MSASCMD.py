@@ -28,12 +28,67 @@ class FolderHierarchy:
                 "11": ( "An unknown error occurred.", "Unknown.", "None.", "Global" ),
                 "12": ( "Code unknown.", "Unusual back-end issue.", "None.", "Global" )
                 }
+    class DefaultFoldersIds:
+        Calendar =      1
+        Contacts =      2
+        DeletedItems =  3
+        Drafts =        4
+        Inbox =         5
+        Journal =       6
+        JunkEmail =     7
+        Notes =         8
+        Outbox =        9
+        SentItems =     10
+        Tasks =         11
+        RecipientInfo = "RI"
+    class Type:
+        Generic =       1
+        Inbox =         2
+        Drafts =        3
+        DeletedItems =  4
+        SentItems =     5
+        Outbox =        6
+        Tasks =         7
+        Calendar =      8
+        Contacts =      9
+        Notes =         10
+        Journal =       11
+        JunkEmail =     12
+        MailG =         12
+        CalendarG =     13
+        ContactsG =     14
+        TasksG =        15
+        JournalG =      16
+        NotesG =        17
+        RecipientInfo = 19
+    FolderTypeToClass = {
+                            "1" : "Email",
+                            "2" : "Email",
+                            "3" : "Email",
+                            "4" : "Email",
+                            "5" : "Email",
+                            "6" : "Email",
+                            "7" : "Tasks",
+                            "8" : "Calendar",
+                            "9" : "Contacts",
+                            "10" : "Notes",
+                            "11" : "Email",
+                            "12" : "Email",
+                            "13" : "Calendar",
+                            "14" : "Contacts",
+                            "15" : "Tasks",
+                            "16" : "Email",
+                            "17" : "Notes",
+                            "19" : "Contacts" #?
+                        }
+
     class FolderCreate:
         Status = {
               "2": ( "A folder that has this name already exists.", "The parent folder already contains a folder that has this name.", "Prompt user to supply a unique name.", "Item" ),
               "3": ( "The specified parent folder is a special system folder.", "The specified parent folder is the Recipient information folder.", "Create the folder under a different parent.", "Item" ),
               "5": ( "The specified parent folder was not found.", "The parent folder does not exist on the server, possibly because it has been deleted or renamed.", "Issue a FolderSync command for the new hierarchy and prompt the user for a new parent folder.", "Item" )
               }
+
         class Type:
             Generic =   1
             Mail =      12
@@ -42,6 +97,7 @@ class FolderHierarchy:
             Tasks =     15
             Journal =   16
             Notes =     17
+
     class FolderDelete:
         Status = {
                   "3": ( "The specified folder is a special system folder, such as the Inbox folder, Outbox folder, Contacts folder, Recipient information, or Drafts folder, and cannot be deleted by the client.", "The client specified a special folder in a FolderDelete command request. special folders cannot be deleted.", "None.", "Item" ),

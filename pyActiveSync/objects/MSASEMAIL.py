@@ -339,7 +339,7 @@ class Email(object):
             elif element.tag == "rm:RightsManagementLicense":
                 continue
       
-def parse_email_to_dict(data, type=1):
+def parse_email(data, type=1):
     email_dict = {}
     if type == 1:
         email_base = data.get_children()
