@@ -113,8 +113,8 @@ class wbxml_parser(object):
             wbxml_bytes.extend(self.encode_string(current_node.text))
         elif current_node.cdata:
             wbxml_bytes.append(self.GlobalTokens.OPAQUE)
-            if current_node.get_parent().tag == "Mime":
-                wbxml_bytes.extend(self.encode_string_as_opaquedata(current_node.cdata))
+            if current_node.tag == "Mime":
+                wbxml_bytes.extend(self.encode_string_as_opaquedata(current_node.cdata.as_string()))
             else: #ConversationMode or ConversationId
                 wbxml_bytes.extend(self.encode_hexstring_as_opaquedata(current_node.cdata))
         if current_node.has_children():
@@ -228,13 +228,13 @@ class wbxml_parser(object):
 
     def encode_string_as_opaquedata(self, string):
         retarray = bytearray()
-        retarray.join(self.decode_multibyte_integer(len(string)))
-        retarray.join(retarray(string, "utf-8"))
+        retarray.extend(self.encode_multibyte_integer(len(string)))
+        retarray.extend(bytearray(string, "utf-8"))
         return retarray
 
     def encode_hexstring_as_opaquedata(self, hexstring):
         retarray = bytearray()
-        retarray.join(self.decode_multibyte_integer(len(hexstring)))
+        retarray.extend(self.encode_multibyte_integer(len(hexstring)))
         retarray.extend(hexstring)
         return retarray
 

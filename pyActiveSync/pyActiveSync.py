@@ -273,11 +273,24 @@ def getitemestimate_check_prime_collections(getitemestimate_responses):
         do_sync(needs_synckey)
     return has_synckey, needs_synckey
 
-
+#SendMail
+import email.mime.text
+email_mid = storage.get_new_mid()
+my_email = email.mime.text.MIMEText("Test email #%s from pyAS." % email_mid)
+my_email["Subject"] = "Test #%s from pyAS!" % email_mid
+my_email["From"] = as_user
+my_email["To"] = as_user
+sendmail_xmldoc_req = SendMail.build(email_mid, my_email)
+res = as_conn.post("SendMail", parser.encode(sendmail_xmldoc_req))
+if res == '':
+    print "Message sent successfully!"
+else:
+    sendmail_xmldoc_res = parser.decode(res)
+    sendmail_res = SendMail.parse(sendmail_xmldoc_res)
 
 #Ping (push), GetItemsEstimate and Sync process test
 #Ping
-ping_xmldoc_req = Ping.build("60", [("5", "Email"),("10","Email")]) #5=Inbox,10=Sent Items
+ping_xmldoc_req = Ping.build("120", [("5", "Email"),("10","Email")]) #5=Inbox,10=Sent Items
 ping_xmldoc_res = as_request("Ping", ping_xmldoc_req)
 ping_res = Ping.parse(ping_xmldoc_res)
 if ping_res[0] == "2": #2=New changes available

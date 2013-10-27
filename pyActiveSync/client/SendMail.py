@@ -23,24 +23,16 @@ class SendMail:
     """http://msdn.microsoft.com/en-us/library/ee178477(v=exchg.80).aspx"""
 
     @staticmethod
-    def build(client_id, source, mime, save_in_sent_items=True, template_id=None):
+    def build(client_id, mime, account_id=None, save_in_sent_items=True, template_id=None):
         sendmail_xmldoc_req = wapxmltree()
         xmlrootnode = wapxmlnode("SendMail")
         sendmail_xmldoc_req.set_root(xmlrootnode, "composemail")
         xml_clientid_node = wapxmlnode("ClientId", xmlrootnode, client_id)
-        xml_source_node = wapxmlnode("Source", xmlrootnode)
-        if source.has_key("FolderId"):
-            wapxmlnode("FolderId", xml_source_node, source["FolderId"])
-        if source.has_key("ItemId"):
-            wapxmlnode("ItemId", xml_source_node, source["ItemId"])
-        if source.has_key("LongId"):
-            wapxmlnode("LongId", xml_source_node, source["LongId"]) 
-        if source.has_key("InstanceId"):
-            wapxmlnode("InstanceId", xml_source_node, source["InstanceId"])        
-        xml_accountid_node = wapxmlnode("AccountId", xmlrootnode, display_name)
+        if account_id:
+            xml_accountid_node = wapxmlnode("AccountId", xmlrootnode, account_id)
         xml_saveinsentiems_node = wapxmlnode("SaveInSentItems", xmlrootnode, str(int(save_in_sent_items)))
-        xml_mime_node = wapxmlnode("Mime", xmlrootnode, mime)
-        xml_templateid_node = wapxmlnode("rm:TemplateID", xmlrootnode, template_id)
+        xml_mime_node = wapxmlnode("Mime", xmlrootnode, None, mime)
+        #xml_templateid_node = wapxmlnode("rm:TemplateID", xmlrootnode, template_id)
         return sendmail_xmldoc_req
 
     @staticmethod
