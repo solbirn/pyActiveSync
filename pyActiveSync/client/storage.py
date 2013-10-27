@@ -106,6 +106,7 @@ class storage:
             curs.execute(index)
         storage.set_keyvalue("X-MS-PolicyKey", "0")
         storage.set_keyvalue("EASPolicies", "")
+        storage.set_keyvalue("MID", "0")
         conn.commit()
 
         conn.close()
@@ -180,7 +181,7 @@ class storage:
             return False
 
     @staticmethod
-    def insert_email(email, curs):
+    def insert_email_obj(email, curs):
         sql = """INSERT INTO MSASEMAIL VALUES ('%s', '%s', '%s', '%s', '%s', 
                                                 '%s', '%s', %s, '%s', '%s', 
                                                 '%s', '%s', '%s', '%s', '%s', 
@@ -193,6 +194,18 @@ class storage:
                                                            repr(email.email_Flag), email.airsyncbase_NativeBodyType, email.email_ContentClass, email.email2_UmCalledId, email.email2_UmUserNotes,
                                                            email.email2_ConversationId, email.email2_ConversationIndex, email.email2_LastVerbExecuted, email.email2_LastVerbExecutedTime, email.email2_ReceivedAsBcc,
                                                            email.email2_Sender, repr(email.email_Categories), repr(email.airsyncbase_BodyPart), email.email2_AccountId, repr(email.rm_RightsManagementLicense))
+        curs.execute(sql)
+
+    @staticmethod
+    def insert_email(email_dict, curs):
+        server_id = email_dict["server_id"]
+        del email_dict["server_id"]
+        email_cols = ""
+        email_vals = ""
+        for email_field in email_dict.keys():
+            email_cols += (", '%s'" % email_field)
+            email_vals += (", '%s'"  % repr(email_dict[email_field]).replace("'","''"))
+        sql = "INSERT INTO MSASEMAIL ( 'ServerId' %s ) VALUES ( '%s' %s )" % (email_cols, server_id, email_vals)
         curs.execute(sql)
 
     @staticmethod
@@ -301,3 +314,11 @@ class storage:
                 for synckey_row in synckeys_rows:
                     synckeys_dict.update({synckey_row[1]:synckey_row[0]})
         return synckeys_dict
+
+    @staticmethod
+    def get_new_mid(path="pyas.asdb"):
+        pmid = int(storage.get_keyvalue("MID"))
+        mid = str(pmid+1)
+        storage.update_keyvalue("MID", mid)
+        return mid
+
