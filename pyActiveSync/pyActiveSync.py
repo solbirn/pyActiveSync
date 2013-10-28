@@ -282,11 +282,15 @@ my_email["Subject"] = "Test #%s from pyAS!" % email_mid
 my_email["From"] = as_user
 my_email["To"] = as_user
 sendmail_xmldoc_req = SendMail.build(email_mid, my_email)
+print "\r\nRequest:"
+print sendmail_xmldoc_req
 res = as_conn.post("SendMail", parser.encode(sendmail_xmldoc_req))
+print "\r\nResponse:"
 if res == '':
     print "\r\nTest message sent successfully!"
 else:
     sendmail_xmldoc_res = parser.decode(res)
+    print sendmail_xmldoc_res
     sendmail_res = SendMail.parse(sendmail_xmldoc_res)
 
 #Ping (push), GetItemsEstimate and Sync process test
