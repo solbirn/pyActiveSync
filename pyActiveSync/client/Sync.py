@@ -77,6 +77,8 @@ class Sync:
     def deepsearch_content_class(item):
         elements = item.get_children()
         for element in elements:
+            if element.has_children():
+                return Sync.deepsearch_content_class(element)
             if (element.tag == "email:To") or (element.tag == "email:From"):
                 return "Email"
             elif (element.tag == "contacts:FileAs") or (element.tag == "contacts:Email1Address"):
@@ -108,10 +110,11 @@ class Sync:
                 return parse_task(item), content_class
             elif content_class == "Notes":
                 return parse_note(item), content_class
-        except:
+        except Exception, e:
             if collectionid_to_type_dict:
-                return parse_item(item, collection_id, None)
+                return Sync.parse_item(item, collection_id, None)
             else:
+                print e
                 pass
         raise LookupError("Could not determine content class of item for parsing. \r\n------\r\nItem:\r\n%s" % repr(item))
 
