@@ -199,7 +199,7 @@ collection_sync_params = {"5":
                              #"ConversationMode":"1",
                              #"Commands": {"Add":None, "Delete":None, "Change":None, "Fetch":None}
                             },
-                          "10":
+                          "1":
                             {#"Supported":"",
                              #"DeletesAsMoves":"1",
                              #"GetChanges":"1",
@@ -209,7 +209,7 @@ collection_sync_params = {"5":
                                          "Conflict": airsync_Conflict.ServerReplacesClient,
                                          "MIMETruncation":airsync_MIMETruncation.TruncateNone,
                                          "MIMESupport":airsync_MIMESupport.SMIMEOnly,
-                                         "Class":airsync_Class.Email,
+                                         "Class":airsync_Class.Calendar,
                                          #"MaxItems":"300", #Recipient information cache sync requests only. Max number of frequently used contacts.
                                          "airsyncbase_BodyPreference": [{
                                                             "Type": airsyncbase_Type.HTML,
@@ -232,6 +232,20 @@ collection_sync_params = {"5":
                             }
                        }
 
+gie_options = {"5":
+                   {#"ConversationMode": "0",
+                    "Class": "Email",
+                    #"FilterType": "",
+                    #"MaxItems": "" #Recipient information cache sync requests only. Max number of frequently used contacts.
+                    },
+               "1":
+                   {#"ConversationMode": "0",
+                    "Class": "Calendar",
+                    #"FilterType": "",
+                    #"MaxItems": "" #Recipient information cache sync requests only. Max number of frequently used contacts.
+                    }
+               }
+
 #Sync function
 def do_sync(collections):
     as_sync_xmldoc_req = Sync.build(storage.get_synckeys_dict(curs), collections)
@@ -246,11 +260,13 @@ def do_sync(collections):
         as_sync_xmldoc_res = parser.decode(res)
         print as_sync_xmldoc_res
         sync_res = Sync.parse(as_sync_xmldoc_res, collectionid_to_type_dict)
-        storage.update_emails(sync_res)
+        storage.update_items(sync_res)
+
+
 
 #GetItemsEstimate
 def do_getitemestimates(collection_ids):
-    getitemestimate_xmldoc_req = GetItemEstimate.build(storage.get_synckeys_dict(curs), collection_ids)
+    getitemestimate_xmldoc_req = GetItemEstimate.build(storage.get_synckeys_dict(curs), collection_ids, gie_options)
     getitemestimate_xmldoc_res = as_request("GetItemEstimate", getitemestimate_xmldoc_req)
 
     getitemestimate_res = GetItemEstimate.parse(getitemestimate_xmldoc_res)
@@ -284,18 +300,18 @@ my_email["To"] = as_user
 sendmail_xmldoc_req = SendMail.build(email_mid, my_email)
 print "\r\nRequest:"
 print sendmail_xmldoc_req
-res = as_conn.post("SendMail", parser.encode(sendmail_xmldoc_req))
-print "\r\nResponse:"
-if res == '':
-    print "\r\nTest message sent successfully!"
-else:
-    sendmail_xmldoc_res = parser.decode(res)
-    print sendmail_xmldoc_res
-    sendmail_res = SendMail.parse(sendmail_xmldoc_res)
+#res = as_conn.post("SendMail", parser.encode(sendmail_xmldoc_req))
+#print "\r\nResponse:"
+#if res == '':
+#    print "\r\nTest message sent successfully!"
+#else:
+#    sendmail_xmldoc_res = parser.decode(res)
+#    print sendmail_xmldoc_res
+#    sendmail_res = SendMail.parse(sendmail_xmldoc_res)
 
 #Ping (push), GetItemsEstimate and Sync process test
 #Ping
-ping_xmldoc_req = Ping.build("120", [("5", "Email"),("10","Email")]) #5=Inbox,10=Sent Items
+ping_xmldoc_req = Ping.build("120", [("5", "Email"),("1","Calendar")]) #5=Inbox,1=Calendar
 ping_xmldoc_res = as_request("Ping", ping_xmldoc_req)
 ping_res = Ping.parse(ping_xmldoc_res)
 if ping_res[0] == "2": #2=New changes available

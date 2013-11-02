@@ -94,9 +94,44 @@ class storage:
                                                 airsyncbase_BodyPart text,
                                                 email2_AccountId text,
                                                 rm_RightsManagementLicense text)""")
+
+        curs.execute("""CREATE TABLE MSASCAL (ServerId text, 
+                                              calendar_TimeZone text, 
+                                              calendar_DtStamp text,
+                                              calendar_StartTime text,
+                                              calendar_Subject text,
+                                              calendar_UID text,
+                                              calendar_OrganizerName text,
+                                              calendar_OrganizerEmail text,
+                                              calendar_Location text,
+                                              calendar_EndTime text,
+                                              airsyncbase_Type text,
+                                              airsyncbase_EstimatedDataSize text,
+                                              airsyncbase_Truncated text,
+                                              airsyncbase_Data text,
+                                              airsyncbase_PartsInfo text,
+                                              airsyncbase_Preview text,
+                                              calendar_Sensitivity text,
+                                              calendar_BusyStatus text,
+                                              calendar_AllDayEvent text,
+                                              calendar_Reminder text,
+                                              calendar_MeetingStatus text,
+                                              airsyncbase_NativeBodyType text,
+                                              calendar_ResponseRequested text,
+                                              calendar_ResponseType text,
+                                              calendar_AppointmentReplyTime text,
+                                              calendar_Attendees text,
+                                              calendar_Categories text,
+                                              calendar_Recurrence text,
+                                              calendar_OnlineMeetingConfLink text,
+                                              calendar_OnlineMeetingExternalLink text,
+                                              calendar_DisallowNewTimeProposal text,
+                                              calendar_Exceptions text""")
+
         conn.commit()
 
         indicies = ['CREATE UNIQUE INDEX "main"."MSASEMAIL_ServerId_Idx" ON "MSASEMAIL" ("ServerId" ASC)', 
+                    'CREATE UNIQUE INDEX "main"."MSASCAL_ServerId_Idx" ON "MSASCAL" ("ServerId" ASC)', 
                     'CREATE UNIQUE INDEX "main"."SyncKey_CollectionId_Idx" ON "SyncKeys" ("CollectionId" ASC)',
                     'CREATE UNIQUE INDEX "main"."KeyValue_Key_Idx" ON "KeyValue" ("Key" ASC)',
                     'CREATE UNIQUE INDEX "main"."FolderHierarchy_ServerId_Idx" ON "FolderHierarchy" ("ServerId" ASC)',
@@ -224,8 +259,69 @@ class storage:
         sql = "DELETE FROM MSASEMAIL WHERE ServerId='%s'" % (sever_id)
         curs.execute(sql)
 
+    class ItemOps:
+        Insert = 0
+        Delete = 1
+        Update = 2
+        SoftDelete = 3
+
     @staticmethod
-    def update_emails(collections, path="pyas.asdb"):
+    def item_operation(method, item_class, data, curs):
+        if method == storage.ItemOps.Insert:
+            if item_class == "Email":
+                storage.insert_email(data, curs)
+            elif item_class == "Calendar":
+                storage.insert_calendar(data, curs)
+            elif item_class == "Contact":
+                storage.insert_contact(data, curs)
+            elif item_class == "Task":
+                storage.insert_task(data, curs)
+            elif item_class == "Note":
+                storage.insert_note(data, curs)
+            elif item_class == "SMS":
+                storage.insert_sms(data, curs)
+        elif method == storage.ItemOps.Delete:
+            if item_class == "Email":
+                storage.delete_email(data, curs)
+            elif item_class == "Calendar":
+                storage.delete_calendar(data, curs)
+            elif item_class == "Contact":
+                storage.delete_contact(data, curs)
+            elif item_class == "Task":
+                storage.delete_task(data, curs)
+            elif item_class == "Note":
+                storage.delete_note(data, curs)
+            elif item_class == "SMS":
+                storage.delete_sms(data, curs)
+        elif method == storage.ItemOps.Update:
+            if item_class == "Email":
+                storage.update_email(data, curs)
+            elif item_class == "Calendar":
+                storage.update_calendar(data, curs)
+            elif item_class == "Contact":
+                storage.update_contact(data, curs)
+            elif item_class == "Task":
+                storage.update_task(data, curs)
+            elif item_class == "Note":
+                storage.update_note(data, curs)
+            elif item_class == "SMS":
+                storage.update_sms(data, curs)
+        elif method == storage.ItemOps.SoftDelete:
+            if item_class == "Email":
+                storage.delete_email(data, curs)
+            elif item_class == "Calendar":
+                storage.delete_calendar(data, curs)
+            elif item_class == "Contact":
+                storage.delete_contact(data, curs)
+            elif item_class == "Task":
+                storage.delete_task(data, curs)
+            elif item_class == "Note":
+                storage.delete_note(data, curs)
+            elif item_class == "SMS":
+                storage.delete_sms(data, curs)
+
+    @staticmethod
+    def update_items(collections, path="pyas.asdb"):
         conn = sqlite3.connect(path)
         curs = conn.cursor()
         for collection in collections:
@@ -238,13 +334,13 @@ class storage:
 
             for command in collection.Commands:
                 if command[0] == "Add":
-                    storage.insert_email(command[1][0], curs)
+                    storage.item_operation(storage.ItemOps.Insert, command[1][1], command[1][0], curs)
                 if command[0] == "Delete":
-                    storage.delete_email(command[1], curs)
+                    storage.item_operation(storage.ItemOps.Delete, command[1][1], command[1][0], curs)
                 elif command[0] == "Change":
-                    storage.update_email(command[1][0], curs)
+                    storage.item_operation(storage.ItemOps.Update, command[1][1], command[1][0], curs)
                 elif command[0] == "SoftDelete":
-                    storage.delete_email(command[1], curs)
+                    storage.item_operation(storage.ItemOps.SoftDelete, command[1][1], command[1][0], curs)
 
         conn.commit()
         conn.close()
