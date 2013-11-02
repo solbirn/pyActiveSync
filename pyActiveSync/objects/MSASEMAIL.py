@@ -401,10 +401,11 @@ def parse_email(data, type=1):
             elif element.tag == "email2:Sender":
                     email_dict.update({ "email2_Sender" : element.text })
             elif element.tag == "email:Categories":
-                    email_dict.update({ "email_Categories" : []})
-                    categories_elements = element.get_children()
-                    for category in categories_elements:
-                        email_dict["email_Categories"].append(category.text)
+                categories_list = []
+                categories = element.get_children()
+                for category_element in categories:
+                    categories_list.append(category_element.text)
+                email_dict.update({ "email_Categories" : categories_list })
             elif element.tag == "airsyncbase:BodyPart":
                     email_dict.update({ "airsyncbase_Body" : airsyncbase_BodyPart.parse(element)})
             elif element.tag == "email2:AccountId":
