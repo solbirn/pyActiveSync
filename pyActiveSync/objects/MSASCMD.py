@@ -226,6 +226,12 @@ class MoveItems:
                 "7": ( "Source or destination item was locked.", "Transient server condition.", "Retry the MoveItems command request.", "Item" ),
                 }
 
+class Search:
+    class Name:
+        Mailbox = "Mailbox"
+        DocumentLibrary = "DocumentLibrary"
+        GAL = "GAL"
+
 class Sync:
     Status = {
                 "1": ( "Success.", "Server successfully completed command.", "None.", "Global" ),
