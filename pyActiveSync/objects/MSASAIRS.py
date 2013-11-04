@@ -55,16 +55,16 @@ class airsync_Class:
     Notes =     "Notes"
     SMS =       "SMS"
 
-class airsync_FilterType:  #  Email | Calendar | Tasks
-    NoFilter =          0  #    Y   |    Y     |   Y
-    OneDay =            1  #    Y   |    N     |   N
-    ThreeDays =         2  #    Y   |    N     |   N
-    OneWeek =           3  #    Y   |    N     |   N
-    TwoWeeks =          4  #    Y   |    Y     |   N
-    OneMonth =          5  #    Y   |    Y     |   N
-    ThreeMonths =       6  #    N   |    Y     |   N
-    SixMonths =         7  #    N   |    Y     |   N
-    IncompleteTasks =   8  #    N   |    N     |   Y
+class airsync_FilterType:    #  Email | Calendar | Tasks
+    NoFilter =          "0"  #    Y   |    Y     |   Y
+    OneDay =            "1"  #    Y   |    N     |   N
+    ThreeDays =         "2"  #    Y   |    N     |   N
+    OneWeek =           "3"  #    Y   |    N     |   N
+    TwoWeeks =          "4"  #    Y   |    Y     |   N
+    OneMonth =          "5"  #    Y   |    Y     |   N
+    ThreeMonths =       "6"  #    N   |    Y     |   N
+    SixMonths =         "7"  #    N   |    Y     |   N
+    IncompleteTasks =   "8"  #    N   |    N     |   Y
 
 class airsync_Conflict:
     ClientReplacesServer = 0
