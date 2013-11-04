@@ -1,8 +1,8 @@
 About pyActiveSync
 -----------------
-pyActiveSync is a pure python library for the Microsoft ActiveSync protocol.
+pyActiveSync is a pure python client-side library for the Microsoft ActiveSync protocol.
 
-Goals are to create and easy to read, extensible, and usable implementation of client-side ActiveSync protocol in python.
+Goal is to create an easy to read, extensible, and usable implementation of client-side ActiveSync protocol (v12+) in python (for now v2.7).
 
 So far, most ActiveSync commands (i.e. raw functionality) are implemented and working correctly. 
 See dev_playground.py and misc_tests.py for examples of "raw functionality" usage.
@@ -14,10 +14,13 @@ TODO:
 -General code cleanup, inconsistency resolution
 -Convert into module
 -Add ActiveSync status handling helpers
--Add tiered logging to all components
+-Add (tiered) logging to all components
 -Add unit testing suite
 -Performance analysis/enhancments
 -Submit to PyPI
+
+-Create python 3 version?
+-Add protocol versioning support?
 -Create sample ActiveSync client using PySide?
 
 
