@@ -67,7 +67,7 @@ def parse_calendar(data):
         elif element.tag == "calendar:Exceptions":
             exceptions_list = []
             for recurrence_exception in element.get_children():
-                attendee_dict = {}
+                exception_dict = {}
                 for exception_element in recurrence_exception.get_children():
                     if exception_element.tag == "calendar:Deleted":
                         exception_dict.update({ "calendar_Deleted" : exception_element.text })
@@ -126,7 +126,7 @@ def parse_calendar(data):
                         exception_dict.update({ "calendar_Reminder" : exception_element.text })
                     elif exception_element.tag == "calendar:Subject":
                         exception_dict.update({ "calendar_Subject" : exception_element.text })
-                    exceptions_list.append(attendee_dict)
+                    exceptions_list.append(exception_dict)
             calendar_dict.update({ "calendar_Exceptions" : exceptions_list })
         elif element.tag == "calendar:Location":
             calendar_dict.update({ "calendar_Location" : element.text })
