@@ -67,8 +67,11 @@ class Provision:
         provison_provison_children = root_element.get_children()
 
         policy_dict = {}
-        settings_status = ''
-        policy_status = ''
+        settings_status = ""
+        policy_status = ""
+        policy_key = "0"
+        policy_type = ""
+        status = ""
 
         for element in provison_provison_children:
             if element.tag is "Status":
