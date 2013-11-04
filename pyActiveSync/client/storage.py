@@ -105,12 +105,7 @@ class storage:
                                               calendar_OrganizerEmail text,
                                               calendar_Location text,
                                               calendar_EndTime text,
-                                              airsyncbase_Type text,
-                                              airsyncbase_EstimatedDataSize text,
-                                              airsyncbase_Truncated text,
-                                              airsyncbase_Data text,
-                                              airsyncbase_PartsInfo text,
-                                              airsyncbase_Preview text,
+                                              airsyncbase_Body text,
                                               calendar_Sensitivity text,
                                               calendar_BusyStatus text,
                                               calendar_AllDayEvent text,
@@ -126,12 +121,104 @@ class storage:
                                               calendar_OnlineMeetingConfLink text,
                                               calendar_OnlineMeetingExternalLink text,
                                               calendar_DisallowNewTimeProposal text,
-                                              calendar_Exceptions text""")
+                                              calendar_Exceptions text)""")
 
+        curs.execute("""CREATE TABLE MSASCNTC (ServerId text, 
+                                                contacts2_AccountName text,
+                                                contacts_Alias text,
+                                                contacts_Anniversary text,
+                                                contacts_AssistantName text,
+                                                contacts_AssistantPhoneNumber text,
+                                                contacts_Birthday text,
+                                                airsyncbase_Body text,
+                                                contacts_BusinessAddressCity text,
+                                                contacts_BusinessAddressCountry text,
+                                                contacts_BusinessAddressPostalCode text,
+                                                contacts_BusinessAddressState text,
+                                                contacts_BusinessAddressStreet text,
+                                                contacts_BusinessFaxNumber text,
+                                                contacts_BusinessPhoneNumber text,
+                                                contacts_Business2PhoneNumber text,
+                                                contacts_CarPhoneNumber text,
+                                                contacts_Categories text,
+                                                contacts_Children text,
+                                                contacts_2CompanyMainPhone text,
+                                                contacts_CompanyName text,
+                                                contacts_2CustomerId text,
+                                                contacts_Department text,
+                                                contacts_FileAs text,
+                                                contacts_FirstName text,
+                                                contacts_LastName text,
+                                                contacts_Email1Address text,
+                                                contacts_Email2Address text,
+                                                contacts_Email3Address text,
+                                                contacts2_GovernmentId text,
+                                                contacts_HomeAddressCity text,
+                                                contacts_HomeAddressCountry text,
+                                                contacts_HomeAddressPostalCode text,
+                                                contacts_HomeAddressState text,
+                                                contacts_HomeAddressStreet text,
+                                                contacts_HomeFaxNumber text,
+                                                contacts_HomePhoneNumber text,
+                                                contacts_Home2PhoneNumber text,
+                                                contacts2_IMAddress text,
+                                                contacts2_IMAddress2 text,
+                                                contacts2_IMAddress3 text,
+                                                contacts_JobTitle text,
+                                                contacts2_ManagerName text,
+                                                contacts_MiddleName text,
+                                                contacts2_MMS text,
+                                                contacts_MobilePhoneNumber text,
+                                                contacts2_NickName text,
+                                                contacts_OfficeLocation text,
+                                                contacts_OtherAddressCity text,
+                                                contacts_OtherAddressCountry text,
+                                                contacts_OtherAddressPostalCode text,
+                                                contacts_OtherAddressState text,
+                                                contacts_OtherAddressStreet text,
+                                                contacts_PagerNumber text,
+                                                contacts_Picture text,
+                                                contacts_RadioPhoneNumber text,
+                                                contacts_Spouse text,
+                                                contacts_Suffix text,
+                                                contacts_Title text,
+                                                contacts_WebPage text,
+                                                contacts_WeightedRank text,
+                                                contacts_YomiCompanyName text,
+                                                contacts_YomiFirstName text,
+                                                contacts_YomiLastName text)""")
+
+        curs.execute("""CREATE TABLE MSASNOTE (ServerId text,
+                                                notes_Subject text,
+                                                airsyncbase_Body text,
+                                                notes_MessageClass text,
+                                                notes_LastModifiedDate text)""")
+
+        curs.execute("""CREATE TABLE MSASTASK (ServerId text,
+                                                airsyncbase_Body text,
+                                                tasks_Categories text,
+                                                tasks_Complete text,
+                                                tasks_DateCompleted text,
+                                                tasks_DueDate text,
+                                                tasks_Importance text,
+                                                tasks_OrdinalDate text,
+                                                tasks_Recurrence text,
+                                                tasks_ReminderSet text,
+                                                tasks_ReminderTime text,
+                                                tasks_Sensitivity text,
+                                                tasks_StartDate text,
+                                                tasks_Subject text,
+                                                tasks_SubOrdinalDate text,
+                                                tasks_UtcDueDate text,
+                                                tasks_UtcStartDate text)""")
+        
         conn.commit()
 
         indicies = ['CREATE UNIQUE INDEX "main"."MSASEMAIL_ServerId_Idx" ON "MSASEMAIL" ("ServerId" ASC)', 
                     'CREATE UNIQUE INDEX "main"."MSASCAL_ServerId_Idx" ON "MSASCAL" ("ServerId" ASC)', 
+                    'CREATE UNIQUE INDEX "main"."MSASCNTC_ServerId_Idx" ON "MSASCNTC" ("ServerId" ASC)', 
+                    'CREATE UNIQUE INDEX "main"."MSASNOTE_ServerId_Idx" ON "MSASNOTE" ("ServerId" ASC)', 
+                    'CREATE UNIQUE INDEX "main"."MSASTASK_ServerId_Idx" ON "MSASTASK" ("ServerId" ASC)', 
                     'CREATE UNIQUE INDEX "main"."SyncKey_CollectionId_Idx" ON "SyncKeys" ("CollectionId" ASC)',
                     'CREATE UNIQUE INDEX "main"."KeyValue_Key_Idx" ON "KeyValue" ("Key" ASC)',
                     'CREATE UNIQUE INDEX "main"."FolderHierarchy_ServerId_Idx" ON "FolderHierarchy" ("ServerId" ASC)',
@@ -216,47 +303,31 @@ class storage:
             return False
 
     @staticmethod
-    def insert_email_obj(email, curs):
-        sql = """INSERT INTO MSASEMAIL VALUES ('%s', '%s', '%s', '%s', '%s', 
-                                                '%s', '%s', %s, '%s', '%s', 
-                                                '%s', '%s', '%s', '%s', '%s', 
-                                                '%s', '%s', '%s', '%s', '%s', 
-                                                '%s', '%s', '%s', '%s', '%s', 
-                                                '%s', '%s', %s, '%s', '%s')"""  % (
-                                                           email.server_id, email.email_To.replace("'","''"), repr(email.email_Cc).replace("'","''"), email.email_From.replace("'","''"), email.email_Subject.replace("'","''"),
-                                                           email.email_ReplyTo.replace("'","''"), email.email_DateReceived, repr(email.email_DisplayTo), email.email_ThreadTopic.replace("'","''"), email.email_Importance,
-                                                           email.email_Read, repr(email.airsyncbase_Attachments), repr(email.airsyncbase_Body).replace("'",""), email.email_MessageClass, email.email_InternetCPID,
-                                                           repr(email.email_Flag), email.airsyncbase_NativeBodyType, email.email_ContentClass, email.email2_UmCalledId, email.email2_UmUserNotes,
-                                                           email.email2_ConversationId, email.email2_ConversationIndex, email.email2_LastVerbExecuted, email.email2_LastVerbExecutedTime, email.email2_ReceivedAsBcc,
-                                                           email.email2_Sender, repr(email.email_Categories), repr(email.airsyncbase_BodyPart), email.email2_AccountId, repr(email.rm_RightsManagementLicense))
+    def insert_item(table, calendar_dict, curs):
+        server_id = calendar_dict["server_id"]
+        del calendar_dict["server_id"]
+        calendar_cols = ""
+        calendar_vals = ""
+        for calendar_field in calendar_dict.keys():
+            calendar_cols += (", '%s'" % calendar_field)
+            calendar_vals += (", '%s'"  % repr(calendar_dict[calendar_field]).replace("'","''"))
+        sql = "INSERT INTO %s ( 'ServerId' %s ) VALUES ( '%s' %s )" % (table, calendar_cols, server_id, calendar_vals)
         curs.execute(sql)
 
     @staticmethod
-    def insert_email(email_dict, curs):
-        server_id = email_dict["server_id"]
-        del email_dict["server_id"]
-        email_cols = ""
-        email_vals = ""
-        for email_field in email_dict.keys():
-            email_cols += (", '%s'" % email_field)
-            email_vals += (", '%s'"  % repr(email_dict[email_field]).replace("'","''"))
-        sql = "INSERT INTO MSASEMAIL ( 'ServerId' %s ) VALUES ( '%s' %s )" % (email_cols, server_id, email_vals)
-        curs.execute(sql)
-
-    @staticmethod
-    def update_email(email_dict, curs):
-        server_id = email_dict["server_id"]
-        del email_dict["server_id"]
-        email_sql = ""
-        for email_field in email_dict.keys():
-            email_sql += (", %s='%s' "  % (email_field, email_dict[email_field]))
-        email_sql = email_sql.lstrip(", ")
-        sql = "UPDATE MSASEMAIL SET %s WHERE ServerId='%s'" % (email_sql, server_id)
+    def update_item(table, calendar_dict, curs):
+        server_id = calendar_dict["server_id"]
+        del calendar_dict["server_id"]
+        calendar_sql = ""
+        for calendar_field in calendar_dict.keys():
+            calendar_sql += (", %s='%s' "  % (calendar_field, repr(calendar_dict[calendar_field]).replace("'","''")))
+        calendar_sql = calendar_sql.lstrip(", ")
+        sql = "UPDATE %s SET %s WHERE ServerId='%s'" % (table, calendar_sql, server_id)
         curs.execute(sql)
     
     @staticmethod
-    def delete_email(sever_id, curs):
-        sql = "DELETE FROM MSASEMAIL WHERE ServerId='%s'" % (sever_id)
+    def delete_item(table, sever_id, curs):
+        sql = "DELETE FROM %s WHERE ServerId='%s'" % (table, sever_id)
         curs.execute(sql)
 
     class ItemOps:
@@ -265,73 +336,32 @@ class storage:
         Update = 2
         SoftDelete = 3
 
+    class_to_table_dict = {
+                        "Email" : "MSASEMAIL",
+                        "Calendar" : "MSASCAL",
+                        "Contacts" : "MSASCNTC",
+                        "Tasks" : "MSASTASK",
+                        "Notes" : "MSASNOTE",
+                        "SMS" : "MSASMS",
+                        "Document" : "MSASDOC"
+                        }
+
     @staticmethod
     def item_operation(method, item_class, data, curs):
         if method == storage.ItemOps.Insert:
-            if item_class == "Email":
-                storage.insert_email(data, curs)
-            elif item_class == "Calendar":
-                storage.insert_calendar(data, curs)
-            elif item_class == "Contact":
-                storage.insert_contact(data, curs)
-            elif item_class == "Task":
-                storage.insert_task(data, curs)
-            elif item_class == "Note":
-                storage.insert_note(data, curs)
-            elif item_class == "SMS":
-                storage.insert_sms(data, curs)
+            storage.insert_item(storage.class_to_table_dict[item_class], data, curs)
         elif method == storage.ItemOps.Delete:
-            if item_class == "Email":
-                storage.delete_email(data, curs)
-            elif item_class == "Calendar":
-                storage.delete_calendar(data, curs)
-            elif item_class == "Contact":
-                storage.delete_contact(data, curs)
-            elif item_class == "Task":
-                storage.delete_task(data, curs)
-            elif item_class == "Note":
-                storage.delete_note(data, curs)
-            elif item_class == "SMS":
-                storage.delete_sms(data, curs)
+            storage.delete_item(storage.class_to_table_dict[item_class], data, curs)
         elif method == storage.ItemOps.Update:
-            if item_class == "Email":
-                storage.update_email(data, curs)
-            elif item_class == "Calendar":
-                storage.update_calendar(data, curs)
-            elif item_class == "Contact":
-                storage.update_contact(data, curs)
-            elif item_class == "Task":
-                storage.update_task(data, curs)
-            elif item_class == "Note":
-                storage.update_note(data, curs)
-            elif item_class == "SMS":
-                storage.update_sms(data, curs)
+            storage.update_item(storage.class_to_table_dict[item_class], data, curs)
         elif method == storage.ItemOps.SoftDelete:
-            if item_class == "Email":
-                storage.delete_email(data, curs)
-            elif item_class == "Calendar":
-                storage.delete_calendar(data, curs)
-            elif item_class == "Contact":
-                storage.delete_contact(data, curs)
-            elif item_class == "Task":
-                storage.delete_task(data, curs)
-            elif item_class == "Note":
-                storage.delete_note(data, curs)
-            elif item_class == "SMS":
-                storage.delete_sms(data, curs)
+            storage.delete_item(storage.class_to_table_dict[item_class], data, curs)
 
     @staticmethod
     def update_items(collections, path="pyas.asdb"):
         conn = sqlite3.connect(path)
         curs = conn.cursor()
         for collection in collections:
-            if collection.SyncKey > 1:
-                storage.update_synckey(collection.SyncKey, collection.CollectionId, curs)
-                conn.commit()
-            else:
-                conn.close()
-                raise AttributeError("SyncKey incorrect")
-
             for command in collection.Commands:
                 if command[0] == "Add":
                     storage.item_operation(storage.ItemOps.Insert, command[1][1], command[1][0], curs)
@@ -341,6 +371,12 @@ class storage:
                     storage.item_operation(storage.ItemOps.Update, command[1][1], command[1][0], curs)
                 elif command[0] == "SoftDelete":
                     storage.item_operation(storage.ItemOps.SoftDelete, command[1][1], command[1][0], curs)
+            if collection.SyncKey > 1:
+                storage.update_synckey(collection.SyncKey, collection.CollectionId, curs)
+                conn.commit()
+            else:
+                conn.close()
+                raise AttributeError("SyncKey incorrect")
 
         conn.commit()
         conn.close()

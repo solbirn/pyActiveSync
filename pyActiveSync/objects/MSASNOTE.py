@@ -21,7 +21,6 @@
 
 from MSASEMAIL import airsyncbase_Body
 
-@staticmethod
 def parse_note(data):
     note_dict = {}
     note_base = data.get_children()
@@ -38,11 +37,10 @@ def parse_note(data):
             note_dict.update({ "notes_MessageClass" : element.text })
         elif element.tag == "notes:LastModifiedDate":
             note_dict.update({ "notes_LastModifiedDate" : element.text })
-        elif element.tag == "notes:AssistantPhoneNumber":
-            note_dict.update({ "notes_AssistantPhoneNumber" : element.text })
         elif element.tag == "notes:Categories":
-                    note_dict.update({ "notes_Categories" : []})
-                    categories_elements = element.get_children()
-                    for category in categories_elements:
-                        note_dict["notes_Categories"].append(category.text)
+            categories_list = []
+            categories = element.get_children()
+            for category_element in categories:
+                categories_list.append(category_element.text)
+            note_dict.update({ "notes_Categories" : categories_list })
     return note_dict

@@ -21,7 +21,6 @@
 
 from MSASEMAIL import airsyncbase_Body
 
-@staticmethod
 def parse_task(data):
     task_dict = {}
     task_base = data.get_children()
@@ -35,62 +34,67 @@ def parse_task(data):
         elif element.tag == "tasks:CalendarType":
             task_dict.update({ "tasks_CalendarType" : element.text })
         elif element.tag == "tasks:Categories":
-                    note_dict.update({ "tasks_Categories" : []})
-                    categories_elements = element.get_children()
-                    for category in categories_elements:
-                        note_dict["tasks_Categories"].append(category.text)
+            categories_list = []
+            categories = element.get_children()
+            for category_element in categories:
+                categories_list.append(category_element.text)
+            task_dict.update({ "tasks_Categories" : categories_list })
         elif element.tag == "tasks:Complete":
             task_dict.update({ "tasks_Complete" : element.text })
         elif element.tag == "tasks:DateCompleted":
             task_dict.update({ "tasks_DateCompleted" : element.text })
-        elif element.tag == "tasks:DayOfMonth":
-            task_dict.update({ "tasks_DayOfMonth" : element.text })
-        elif element.tag == "tasks:DayOfWeek":
-            task_dict.update({ "tasks_DayOfWeek" : element.text })
-        elif element.tag == "tasks:DeadOccur":
-            task_dict.update({ "tasks_DeadOccur" : element.text })
         elif element.tag == "tasks:DueDate":
             task_dict.update({ "tasks_DueDate" : element.text })
-        elif element.tag == "tasks:FirstDayOfWeek":
-            task_dict.update({ "tasks_FirstDayOfWeek" : element.text })
         elif element.tag == "tasks:Importance":
             task_dict.update({ "tasks_Importance" : element.text })
-        elif element.tag == "tasks:Interval":
-            task_dict.update({ "tasks_Interval" : element.text })
-        elif element.tag == "tasks:IsLeapMonth":
-            task_dict.update({ "tasks_IsLeapMonth" : element.text })
-        elif element.tag == "tasks:MonthOfYear":
-            task_dict.update({ "tasks_MonthOfYear" : element.text })
-        elif element.tag == "tasks:Occurrences":
-            task_dict.update({ "tasks_Occurrences" : element.text })
         elif element.tag == "tasks:OrdinalDate":
             task_dict.update({ "tasks_OrdinalDate" : element.text })
         elif element.tag == "tasks:Recurrence":
-            task_dict.update({ "tasks_Recurrence" : element.text })
-        elif element.tag == "tasks:Regenerate":
-            task_dict.update({ "tasks_Regenerate" : element.text })
+            recurrence_dict = {}
+            for recurrence_element in element.get_children():
+                if recurrence_element.tag == "tasks:Type":
+                    recurrence_dict.update({ "tasks_Type" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:Occurrences":
+                    recurrence_dict.update({ "tasks_Occurrences" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:Regenerate":
+                    recurrence_dict.update({ "tasks_Regenerate" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:DeadOccur":
+                    recurrence_dict.update({ "tasks_DeadOccur" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:FirstDayOfWeek":
+                    recurrence_dict.update({ "tasks_FirstDayOfWeek" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:Interval":
+                    recurrence_dict.update({ "tasks_Interval" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:IsLeapMonth":
+                    recurrence_dict.update({ "tasks_IsLeapMonth" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:WeekOfMonth":
+                    recurrence_dict.update({ "tasks_WeekOfMonth" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:DayOfMonth":
+                    recurrence_dict.update({ "tasks_DayOfMonth" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:DayOfWeek":
+                    recurrence_dict.update({ "tasks_DayOfWeek" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:MonthOfYear":
+                    recurrence_dict.update({ "tasks_MonthOfYear" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:Until":
+                    recurrence_dict.update({ "tasks_Until" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:Start":
+                    recurrence_dict.update({ "tasks_Start" : recurrence_element.text })
+                elif recurrence_element.tag == "tasks:CalendarType":
+                    recurrence_dict.update({ "tasks_CalendarType" : recurrence_element.text })
+            task_dict.update({ "tasks_Recurrence" : recurrence_dict })
         elif element.tag == "tasks:ReminderSet":
             task_dict.update({ "tasks_ReminderSet" : element.text })
         elif element.tag == "tasks:ReminderTime":
             task_dict.update({ "tasks_ReminderTime" : element.text })
         elif element.tag == "tasks:Sensitivity":
             task_dict.update({ "tasks_Sensitivity" : element.text })
-        elif element.tag == "tasks:Start":
-            task_dict.update({ "tasks_Start" : element.text })
         elif element.tag == "tasks:StartDate":
             task_dict.update({ "tasks_StartDate" : element.text })
         elif element.tag == "tasks:Subject":
             task_dict.update({ "tasks_Subject" : element.text })
         elif element.tag == "tasks:SubOrdinalDate":
             task_dict.update({ "tasks_SubOrdinalDate" : element.text })
-        elif element.tag == "tasks:Type":
-            task_dict.update({ "tasks_Type" : element.text })
-        elif element.tag == "tasks:Until":
-            task_dict.update({ "tasks_Until" : element.text })
         elif element.tag == "tasks:UtcDueDate":
             task_dict.update({ "tasks_UtcDueDate" : element.text })
         elif element.tag == "tasks:UtcStartDate":
             task_dict.update({ "tasks_UtcStartDate" : element.text })
-        elif element.tag == "tasks:WeekOfMonth":
-            task_dict.update({ "tasks_WeekOfMonth" : element.text })
     return task_dict

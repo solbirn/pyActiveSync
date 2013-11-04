@@ -21,7 +21,6 @@
 
 from MSASEMAIL import airsyncbase_Body
 
-@staticmethod
 def parse_contact(data):
     contact_dict = {}
     contact_base = data.get_children()
@@ -63,13 +62,17 @@ def parse_contact(data):
         elif element.tag == "contacts:CarPhoneNumber":
             contact_dict.update({ "contacts_CarPhoneNumber" : element.text })
         elif element.tag == "contacts:Categories":
-            contact_dict.update({ "contacts_Categories" : element.text })
-        elif element.tag == "contacts:Category":
-            contact_dict.update({ "contacts_Category" : element.text })
+            categories_list = []
+            categories = element.get_children()
+            for category_element in categories:
+                categories_list.append(category_element.text)
+            contact_dict.update({ "contacts_Categories" : categories_list })
         elif element.tag == "contacts:Children":
-            contact_dict.update({ "contacts_Children" : element.text })
-        elif element.tag == "contacts:Child":
-            contact_dict.update({ "contacts_Child" : element.text })
+            children_list = []
+            children = element.get_children()
+            for child_element in children:
+                children_list.append(child_element.text)
+            contact_dict.update({ "contacts_Children" : children_list })
         elif element.tag == "contacts2:CompanyMainPhone":
             contact_dict.update({ "contacts2_CompanyMainPhone" : element.text })
         elif element.tag == "contacts:CompanyName":
