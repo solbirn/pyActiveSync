@@ -1,8 +1,26 @@
-About
-------
-pyActiveSync is (or rather will be) a pure python library for the Microsoft ActiveSync protocol.
+About pyActiveSync
+-----------------
+pyActiveSync is a pure python library for the Microsoft ActiveSync protocol.
 
-The project is progressing.
+Goals are to create and easy to read, extensible, and usable implementation of client-side ActiveSync protocol in python.
+
+So far, most ActiveSync commands (i.e. raw functionality) are implemented and working correctly. 
+See dev_playground.py and misc_tests.py for examples of "raw functionality" usage.
+
+TODO:
+-Finish implementing/testing: Sync command client->server, Search and Settings commands, AS Proxy support, AutoDiscover, and Rights Management support
+-Cleanup builder and parser return values so they are consistent and predictable
+-Create pythonic(ish) API (to further abstract xml/wbxml building and parsing, and http requests)
+-General code cleanup, inconsistency resolution
+-Convert into module
+-Add ActiveSync status handling helpers
+-Add tiered logging to all components
+-Add unit testing suite
+-Performance analysis/enhancments
+-Submit to PyPI
+-Create sample ActiveSync client using PySide?
+
+
 
 THIS IS NOT A GRANT OF PATENT RIGHTS
 -----------------------------
@@ -11,4 +29,5 @@ unencumbered by third-party patents.  Those intending to use this source code in
 software products are advised that implementations of this code, including in open source software
 or shareware, may require patent licenses from the relevant patent holders.
 
-Please not that the ActiveSync protocol is patented at this time. You must have a license agreement with Microsoft in order to use implementations of this code. See the following link: http://www.microsoft.com/en-us/legal/intellectualproperty/IPLicensing/Programs/exchangeactivesyncprotocol.aspx
+I.e. please note that you probably need have a license agreement with Microsoft in order to use implementations of this code. 
+See the following link: http://www.microsoft.com/en-us/legal/intellectualproperty/IPLicensing/Programs/exchangeactivesyncprotocol.aspx
