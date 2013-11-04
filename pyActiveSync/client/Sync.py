@@ -62,9 +62,11 @@ class Sync:
                             for airsyncpref_node in collections[collection_id][parameter][option_parameter]:
                                 xml_as_Options_airsyncpref_node = wapxmlnode(option_parameter.replace("_",":"), xml_as_Options_node)
                                 wapxmlnode("airsyncbase:Type", xml_as_Options_airsyncpref_node, airsyncpref_node["Type"])
+                                tmp = airsyncpref_node["Type"]
                                 del airsyncpref_node["Type"]
                                 for airsyncpref_parameter in airsyncpref_node.keys():
                                     wapxmlnode("airsyncbase:%s" % airsyncpref_parameter, xml_as_Options_airsyncpref_node, airsyncpref_node[airsyncpref_parameter])
+                                airsyncpref_node["Type"] = tmp
                         elif option_parameter.startswith("rm"):
                             wapxmlnode(option_parameter.replace("_",":"), xml_as_Options_node, collections[collection_id][parameter][option_parameter])
                         else:
@@ -78,7 +80,9 @@ class Sync:
         elements = item.get_children()
         for element in elements:
             if element.has_children():
-                return Sync.deepsearch_content_class(element)
+                content_class = Sync.deepsearch_content_class(element)
+                if content_class:
+                    return content_class
             if (element.tag == "email:To") or (element.tag == "email:From"):
                 return "Email"
             elif (element.tag == "contacts:FileAs") or (element.tag == "contacts:Email1Address"):
@@ -163,7 +167,7 @@ class Sync:
                     if new_collection.Status != "1":
                         response.append(new_collection)
                 elif airsyncbase_sync_collection_children[collection_counter].tag == "MoreAvailable":
-                    new_collection.MoreAvailable = airsyncbase_sync_collection_children[collection_counter].text
+                    new_collection.MoreAvailable = True
                 elif airsyncbase_sync_collection_children[collection_counter].tag == "Commands":
                     airsyncbase_sync_commands_children = airsyncbase_sync_collection_children[collection_counter].get_children()
                     airsyncbase_sync_commands_children_count = len(airsyncbase_sync_commands_children)
