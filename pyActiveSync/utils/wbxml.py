@@ -182,7 +182,7 @@ class wbxml_parser(object):
             elif byte is self.GlobalTokens.STR_I:
                 current_element.text = self.decode_string()
             elif byte is self.GlobalTokens.OPAQUE:
-                opq_len = self.decode_byte()
+                opq_len = self.decode_multibyte_integer()
                 opq_str = ""
                 if current_element.tag == "Mime":
                     opq_str = self.decode_string(opq_len)
@@ -248,8 +248,7 @@ class wbxml_parser(object):
             if last:
                 retarray.append( integer & 0x7f )
                 last = False
-            else:
-                retarray.append( ( integer & 0x7f ) | 0x80 )
+            else: retarray.append( ( integer & 0x7f ) | 0x80 )
             integer = integer >> 7
         retarray.reverse()
         return retarray
