@@ -258,17 +258,15 @@ class wbxml_parser(object):
         return
 
     def decode_string(self, length=None):
-        retarray = bytearray()
         if length is None:
-            #terminator = b"\x00"
-            while self.wbxml[self.pointer] != 0:#terminator:
-                retarray.append(self.wbxml[self.pointer])
-                self.pointer += 1
-            self.pointer+=1
+            # terminator = b"\x00"
+            terminator_index = self.wbxml.find(b'\x00', self.pointer)
+            retarray = self.wbxml[self.pointer:terminator_index]
+            self.pointer = terminator_index + 1
         else:
-            for i in range(0, length):
-                retarray.append(self.wbxml[self.pointer])
-                self.pointer+=1
+            retarray = self.wbxml[self.pointer:self.pointer + length]
+            self.pointer += length
+        # the return value is immutable, therefore it is fine to not copy the retarray
         return str(retarray)
 
     def decode_byte(self):
@@ -291,7 +289,8 @@ class wbxml_parser(object):
 
     def decode_binary(self, length=0):
         retarray = bytearray()
-        for i in range(0, length):
-            retarray.append(self.wbxml[self.pointer])
-            self.pointer+=1
+        # better make a copy since bytearray is mutable (tho it is unlikely that we will modify wbxml)
+        # the performance hit is insignificant anyway
+        retarray[:] = self.wbxml[self.pointer:self.pointer + length]
+        self.pointer += length
         return retarray
