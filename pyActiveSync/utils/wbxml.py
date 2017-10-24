@@ -61,7 +61,8 @@ class wbxml_parser(object):
     def encode(self, inwapxml=None):
         wbxml_bytes = bytearray()
 
-        if not inwapxml: return wbxml_bytes
+        if not inwapxml:
+            return wbxml_bytes
 
         #add headers
         wbxml_bytes.append(self.VERSION_BYTE)
@@ -134,7 +135,7 @@ class wbxml_parser(object):
         charset = self.decode_multibyte_integer()
         string_table_len = self.decode_multibyte_integer()
 
-        if charset is not 0x6A:
+        if charset != 0x6A:
             raise AttributeError("Currently, only UTF-8 is used by MS-ASWBXML")
             return
         if string_table_len > 0:
@@ -146,7 +147,7 @@ class wbxml_parser(object):
         first_iter = True
 
         byte = self.decode_byte()
-        if byte is not self.GlobalTokens.SWITCH_PAGE:
+        if byte != self.GlobalTokens.SWITCH_PAGE:
             if self.default_code_page:
                 default_code_page = self.default_code_page
                 self.pointer-=1
@@ -162,16 +163,15 @@ class wbxml_parser(object):
 
         temp_xmlns = ""
 
-
         while self.pointer < len(inwbxml):
             byte = self.decode_byte()
-            if byte is self.GlobalTokens.SWITCH_PAGE:
+            if byte == self.GlobalTokens.SWITCH_PAGE:
                 current_code_page = self.code_pages[self.decode_byte()]
                 if current_code_page != default_code_page:
                     temp_xmlns = current_code_page.xmlns + ":"
                 else:
                     temp_xmlns = ""
-            elif byte is self.GlobalTokens.END:
+            elif byte == self.GlobalTokens.END:
                 if not current_element.is_root():
                     current_element = current_element.get_parent()
                 else:
@@ -179,9 +179,9 @@ class wbxml_parser(object):
                         raise EOFError("END token incorrectly placed after root node.")
                     else:
                         return wapxmldoc
-            elif byte is self.GlobalTokens.STR_I:
+            elif byte == self.GlobalTokens.STR_I:
                 current_element.text = self.decode_string()
-            elif byte is self.GlobalTokens.OPAQUE:
+            elif byte == self.GlobalTokens.OPAQUE:
                 opq_len = self.decode_multibyte_integer()
                 opq_str = ""
                 if current_element.tag == "Mime":
